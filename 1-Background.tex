@@ -5,7 +5,7 @@
 \chapter[BACKGROUND AND MOTIVATION]{BACKGROUND AND MOTIVATION}\label{sec.background}
 \endgroup
 
-This chapter provides motivational background for the dissertation. \review{This chapter motivates the study undertaken in this dissertation and covers necessary background.}
+This chapter motivates the study undertaken in this dissertation and covers necessary background.
 Section~\ref{sec.ehr} introduces the role of electronic health records
 in comorbidity analysis and mortality risk assessment.
 Section~\ref{sec.mcp} reviews classical and modern approaches to the
@@ -45,13 +45,9 @@ phenotyping for research cohort selection~\citep{Jensen2012}.
 
 \textit{Mortality rate}, the fraction of deceased patients among those
 with a particular disease or group of diseases, is a metric of broad
-interest in medicine, epidemiology, and public health. The
-co-occurrence of multiple diseases in a single patient is known as
-\textit{comorbidity}. \review{\textit{Multimorbidity} is the co-occurrence of multiple diseases in a  patient.} Comorbidity \review{Multimorbidity} assumes particular significance in
-the context of mortality, as the interaction between two or more
-diseases can produce health outcomes that differ from those of each
+interest in medicine, epidemiology, and public health. The co-occurrence of multiple diseases in a single patient is often described using the related concepts of \textit{comorbidity} and \textit{multimorbidity}. Comorbidity refers to the presence of one or more additional conditions alongside a primary or index disease, whereas multimorbidity refers to the coexistence of two or more chronic conditions in an individual without designating any condition as primary. Comorbidity assumes particular significance in the context of mortality, as the interaction between two or more diseases can produce health outcomes that differ from those of each
 disease in isolation~\citep{FEINSTEIN1970455}. Among the many
-analytical opportunities offered by EHRs, comorbidity \review{multimorbidity} analysis stands
+analytical opportunities offered by EHRs, comorbidity analysis stands
 out as especially valuable for understanding mortality risk since
 co-occurring diseases often interact in ways that elevate mortality
 well beyond the simple additive effects of individual
@@ -60,7 +56,7 @@ highlight, a dominant illness can overshadow concurrent conditions and
 increase the risk of clinical neglect, a challenge that data-driven
 EHR analytics can help address.
 
-Identifying comorbidities \review{multimorbidities} in the form of disease clusters with high
+Identifying multimorbidities in the form of disease clusters with high
 mortality rates yields benefits across epidemiology, health policy,
 healthcare management, and public health planning. Knowledge of such
 clusters enables healthcare providers to anticipate disease onset early
@@ -118,7 +114,7 @@ distinctive diagnosis patterns, survival functions, and laboratory
 correlates, underscoring the heterogeneity within disease populations
 and the need for personalized risk assessment.
 
-Recent EHR-based studies have employed association rule mining (e.g. the \alert{a priori} algorithm) and $k$-means clustering to uncover
+Recent EHR-based studies have employed association rule mining (e.g. the a priori algorithm) and $k$-means clustering to uncover
 frequent disease co-occurrences and support early detection and
 tailored treatment~\citep{HariEtAl2024INFORMStutorial,Parisa2025}.
 Optimization frameworks offer additional promise by formulating complex
@@ -145,7 +141,7 @@ set of vertices incident to every edge. These three problems are
 equivalent in the following sense: a set $S$ is a maximum clique in
 $G$ if and only if $S$ is a maximum independent set in the complement
 graph $\bar{G}$, and if and only if $V \setminus S$ is a minimum
-vertex cover in $G$ \alert{not G, in $\bar{G}$}. This equivalence has enabled substantial
+vertex cover in $\bar{G}$. This equivalence has enabled substantial
 transfer of algorithmic ideas and bounding techniques across
 all three problems~\citep{Bomze99survey}.
 
@@ -165,7 +161,8 @@ the complement graph:
         & x_i \in \{0,1\} && \forall i \in V(G).
     \end{align}
 \end{subequations}
-In formulation~\eqref{form.eclique}, $x_i=1$ means vertex $i$ is in the clique, and the constraint forbids selecting both endpoints of any non-edge, so any feasible binary solution \st{is exactly} \alert{corresponds to} a clique. \comm{You defined a clique a subset of nodes; so a binary vector cannot be one.}
+In formulation~\eqref{form.eclique}, $x_i=1$ means vertex $i$ is in the clique, and the constraint forbids selecting both endpoints of any non-edge, so any feasible binary solution corresponds to a clique. 
+% \comm{You defined a clique a subset of nodes; so a binary vector cannot be one.}
 
 More advanced mixed-integer formulations---including
 clique-inequality-based, independent-set-augmented, and lifted
@@ -221,9 +218,7 @@ methods~\citep{loukakis1981}, while a listing procedure of \cite{chiba1985} orga
 \cite{TOMITA2006}, who developed enhanced Bron--Kerbosch variants whose pivot selection reduces the number of recursive branches, yielding substantially faster practical performance and what is widely regarded as one of the strongest enumeration schemes for general graphs. Later work refined this lineage by ordering the recursion along a degeneracy ordering of the vertices—processing low-degree vertices first—to bound the work per branch on sparse graphs~\citep{CAZALS2008TCS, Eppstein13}; further practical gains came from combining degeneracy ordering, parallelization, and tighter bounding on sparse real-world instances~\citep{san2018efficiently}.
 
 \paragraph{Exact implicit-search methods.}
-While enumerative methods provide complete listings \st{and strong
-theoretical guarantees}, many applications require only the single
-largest clique and benefit from implicit enumeration techniques that
+While enumerative methods provide complete listings, many applications require only the single largest clique and benefit from implicit enumeration techniques that
 avoid exhaustive listing. These approaches, most commonly realized
 through branch-and-bound (B\&B) frameworks, systematically construct
 partial solutions by branching on vertex inclusion or exclusion while
@@ -322,7 +317,7 @@ The algorithmic landscape of the maximum clique problem, spanning
 enumeration, exact implicit search, and scalable heuristics, provides
 powerful tools for identifying dense substructures in graphs. 
 
-In the next section, we extend our perspective to ratio-based objectives by reviewing fractional programming and \st{its} \review{emphasizing} combinatorial variants.
+In the next section, we extend our perspective to ratio-based objectives by reviewing fractional programming and emphasizing combinatorial variants.
 
 \section{Fractional Programming}\label{sec.fp}
 
@@ -535,7 +530,7 @@ Sherali2007, CHAOVALITWONGSE2004517, gupte13,
 sherali2013reformulation}. In addition to exact methods, a variety of heuristic approaches have been proposed, including simulated annealing and tabu search~\citep{Hansen199097}, greedy randomized adaptive search procedures (GRASP)~\citep{prokopyev2005multiple}, and application-specific Lagrangian-based heuristics~\citep{amiri1999bandwidth}.
 
 
-This chapter has reviewed three interconnected foundations for the dissertation. First, it demonstrated the importance of EHRs in analyzing comorbidity patterns and mortality risk. Second, it described how the maximum clique problem, together with its rich repertoire of enumerative, exact, and heuristic solution methods, provides a combinatorial tool for identifying densely interconnected groups of diseases. Third, it showed how fractional programming, particularly its extensions to integer and combinatorial settings, offers a mathematically rigorous framework for optimizing ratio-based objectives such as mortality rate \st{per} \alert{of a} disease cluster. Building on these foundations, this dissertation makes the following contributions.
+This chapter has reviewed three interconnected foundations for the dissertation. First, it demonstrated the importance of EHRs in analyzing comorbidity patterns and mortality risk. Second, it described how the maximum clique problem, together with its rich repertoire of enumerative, exact, and heuristic solution methods, provides a combinatorial tool for identifying densely interconnected groups of diseases. Third, it showed how fractional programming, particularly its extensions to integer and combinatorial settings, offers a mathematically rigorous framework for optimizing ratio-based objectives such as mortality rate of a disease cluster. Building on these foundations, this dissertation makes the following contributions.
 
 \section{Contributions}\label{sec.contributions}
 
@@ -565,7 +560,7 @@ integrates the combinatorial branch-and-bound algorithm to generate valid inequa
 
 In Chapter~\ref{sec.DATAPREP}, we describe how the comorbidity graph and the experimental testbed are derived from real-world EHR data. This establishes the empirical foundation for the computational study, while the detailed extraction, code-mapping, and graph-construction procedures are presented in that chapter.
 
-In Chapter~\ref{sec.results}, we evaluate all six methods on \st{the complete dataset and} a testbed of instances derived from the MIMIC-IV EHR database. We demonstrate that the hybrid logic-based Benders decomposition algorithm solves large-scale instances to optimality while accommodating side constraints without algorithmic modification, illustrated through \st{age-based and cancer-containing} case studies. We also introduce a size-restricted variant of the problem and a marginal \alert{mortality rate} extension, and test both on the full MIMIC-IV cohort of \numprint{223291} patients, identifying clinically interpretable high-mortality disease cliques across a range of clique sizes.
+In Chapter~\ref{sec.results}, we evaluate all six methods on a testbed of instances derived from the MIMIC-IV EHR database. We demonstrate that the hybrid logic-based Benders decomposition algorithm solves large-scale instances to optimality while accommodating side constraints without algorithmic modification, illustrated through  case studies. We also introduce a size-restricted variant of the problem and a marginal mortality rate extension, and test both on the full MIMIC-IV cohort of \numprint{223291} patients, identifying clinically interpretable high-mortality disease cliques across a range of clique sizes.
 
 
 Chapter~\ref{sec.conclusion} concludes the dissertation by summarizing
