@@ -1,0 +1,498 @@
+\section{Results of RO-~\ref{it.RO1}}
+Our focus is to discover small ($b \le 4$) disease clusters that exhibit high mortality rates. Based on our conversations with medical practitioners, we understand that these are the cases where it is most valuable, from a decision-support perspective, to find comorbid diseases that increase the mortality rate significantly. In our experiments, we consider the clique size upper-bound $b \in\{1,2,3,4\}$. We note that the largest clique in our comorbidity graph contains 92 diseases, but unsurprisingly there are zero patients that have all 92 diseases. Based on our preliminary experiments, we can detect cliques with as many as 10 vertices in the 10.6 million patient dataset that simultaneously affect at least 100 patients with mortality rate under 0.46.
+
+The modified BK Algorithm~\ref{alg.BKMMRC} solves all instances to optimality as reported in Table~\ref{tab:MRC} in the appendix and summarized in Table~\ref{tab:allsamplesBK-sum}. The average wall-clock running time  reported here includes the time to complete all the recursive calls and the time to report the top-100 highest mortality rate cliques. 
+
+ \begin{table}[H]
+    \centering \tiny
+    \caption{\small Summary of results from solving problem~\eqref{eq.MMRPclq} using the modified Bron--Kerbosch algorithm~\ref{alg.BKMMRC}.}
+    \begin{tabular}{ccrcrc}
+    \toprule
+      Size   & $b$ & Avg $\mu$ & [min, max] & Avg time (s) & [min, max]  \\
+      \midrule
+        \multirow{4}{*}{\numprint{1000}} & 1 & 0.30 & $[0.14, 0.53]$ & 1 & $[1,1]$\\
+        & 2 & 0.45 & $[0.20, 0.63]$ & 1 & $[1, 1]$\\
+        & 3 & 0.49 & $[0.25, 0.70]$ & 1 & $[1, 1]$\\
+        & 4 & 0.51 & $[0.30, 0.70]$ & 1 & $[1, 1]$\\
+        \midrule
+        \multirow{4}{*}{\numprint{5000}} & 1 & 0.63 & $[0.50, 0.73]$ & 1 & $[1,1]$\\
+        & 2 & 0.68 & $[0.50, 0.75]$ & 1 & $[1, 1]$\\
+        & 3 & 0.72 & $[0.63, 0.80]$ & 1 & $[1, 1]$\\
+        & 4 & 0.74 & $[0.63, 0.83]$ & 5 & $[4, 5]$\\
+        \midrule
+        \multirow{4}{*}{\numprint{50000}} & 1 & 0.67 & $[0.62, 0.72]$ & 1 & $[1,1]$\\
+        & 2 & 0.81 & $[0.72, 0.84]$ & 1 & $[1, 1]$\\
+        & 3 & 0.98 & $[0.91, 1.00]$ & 7 & $[6, 7]$\\
+        & 4 & 1.00 & $[1.00, 1.00]$ & 53 & $[1, 69]$\\
+        \midrule
+        \multirow{4}{*}{\numprint{100000}} & 1 & 0.66 & $[0.63, 0.69]$ & 1 & $[1, 1]$\\
+        & 2 & 0.79 & $[0.74, 0.83]$ & 1 & $[1, 1]$\\
+        & 3 & 0.97 & $[0.85, 1.00]$ & 13 & $[12, 14]$\\
+        & 4 & 1.00 & $[1.00, 1.00]$ & 117 & $[114, 121]$\\
+      \bottomrule
+    \end{tabular}
+    \label{tab:allsamplesBK-sum}
+\end{table}
+
+We assess the performance of the modified BK algorithm on  the full dataset consisting of 10.6 million distinct patient records, as it represents the scale at which we may be interested in solving our problems of interest. Table~\ref{tab:10mXBK} presents the results for this complete dataset. Column ``\#Exp'' reports the number of expired patients (the numerator of the mortality rate) for reference and column ``\#RC'' reports the number of recursive calls made by the algorithm. For experiments in this section, we report the top-5 most lethal cliques. 
+\begin{table}[!ht]
+ \tiny 
+    \caption{\small Top-5 most lethal cliques in  the 10.6 million patient dataset found by the modified BK algorithm.}
+    \label{tab:10mXBK}
+\centering \resizebox{\textwidth}{!}
+    {\begin{tabular}{clrrrr}
+     \toprule
+          $b$ & Clique &  \#Exp & $\mu$  & Time (s) & \#RC\\ 
+          \midrule
+         \multirow{5}{*}{1} & Cardiac arrest & \numprint{29450}&0.66 &  \multirow{5}{*}{20} & \multirow{5}{*}{286} \\
+          &Shock & \numprint{23422}&0.41  & & \\
+          &Asp. pneum. & \numprint{9677}&0.26  & & \\
+          &Resp. fail. & \numprint{49599}&0.25  & & \\
+          &Malig. neopl. &\numprint{7583} &0.24  & & \\
+         % \cline{2-8}
+\midrule
+
+     \multirow{5}{*}{2} & Cardiac arrest, Coma &\numprint{6765} &0.73 &  \multirow{5}{*}{209} & \multirow{5}{*}{\numprint{11619}} \\
+          &Cardiac arrest, Septicemia &\numprint{7172} &0.70  & & \\
+          &Cardiac arrest, Shock & \numprint{7176}&0.70  & & \\
+          &Cardiac arrest, Chron. ulcer & \numprint{2925}&0.68  & & \\
+          &Cardiac arrest, Resp. distr. synd. &\numprint{14446} &0.68  & & \\
+         % \cline{2-8}
+\midrule
+     \multirow{5}{*}{3} & Cardiac arrest, Coma, Shock & \numprint{90}&0.76 &  \multirow{5}{*}{\numprint{1894}} & \multirow{5}{*}{\numprint{346017}} \\
+          &Cardiac arrest, Coma, Renal failure &\numprint{156} &0.74  & & \\
+          &Cardiac arrest, Coma, Aftercare & \numprint{3991}&0.74  & & \\
+          &Cardiac arrest, Coma, Per. atheros. &\numprint{993} &0.74  & & \\
+         & Cardiac arrest, Shock, Septicemia &\numprint{4388}& 0.73  & & \\
+           % \cline{2-8}
+\midrule
+     \multirow{5}{*}{4} & Cardiac arrest, Coma, Shock, Renal failure & \numprint{1994}& 0.77 & \multirow{5}{*}{\numprint{13221}} & \multirow{5}{*}{\numprint{7721551}} \\
+         & Cardiac arrest, Coma, Shock, Aftercare &\numprint{1894}&0.77  & & \\
+         & Cardiac arrest, Coma, Shock, Epilepsy &\numprint{798}& 0.76  & & \\
+         & Cardiac arrest, Coma, Shock, Diab. mell. w complications & \numprint{863}&0.76  & & \\
+         & Cardiac arrest, Coma, Shock, Fluid disord. & \numprint{2469}&0.76  & & \\
+         \bottomrule
+    \end{tabular}}
+\end{table}
+
+ As evident from Table~\ref{tab:10mXBK}, the modified BK algorithm is effective on this large dataset for all practically meaningful values of parameter $b$. As far as the results themselves are concerned, the mortality rate associated with cardiac arrest, either by itself or in combination with other diseases stands out as the highest among all cliques of size at most 4. As expected the maximum mortality rate increases as the upper bound $b$ on clique size increases from 1 to 4. Cardiac arrest by itself has a mortality rate of 0.66, but when paired with coma, septicemia, shock, chronic ulcer, and respiratory distress syndrome, it corresponds to the five highest mortality rate cliques with $\mu$ ranging from 0.68 to 0.73. The highest mortality rates  for $b \in \{3,4\}$ are higher, between 0.73 and 0.77, associated with cardiac arrest, coma, and shock.
+ 
+From the results in Table~\ref{tab:10mXBK}, specifically, the  diseases featured in the five highest mortality rate cliques for each value of parameter $b$, confirm the current understanding in the medical community as some of the most lethal comorbidities.  Our  computational results help reinforce clinical insights through an analysis of large-scale EHR data. Furthermore, the fact that the proposed approach has  not detected spurious comorbidities among the highest mortality rate cliques is encouraging, as the detection of spurious clusters is a common concern in any graph-based data mining approach. The procedure followed in preparing  the dataset and the design of the modified BK algorithm seem to be offering a practically effective and useful framework for mortality rate analysis of comorbidities. 
+  
+\begin{table}[!ht]
+    \caption{Top-5 most lethal cliques in the 10.2 million patient dataset found by the modified BK algorithm.}
+    \label{tab:10mXBKdeletion}
+    \tiny \centering \resizebox{\textwidth}{!}
+    {\begin{tabular}{clrrrr}
+          \toprule
+         $b$ & Clique &  \#Exp & $\mu$ &  Time (s)& \#RC\\[0.5ex]
+          \midrule
+         \multirow{5}{*}{1} &  Secondary malignancies
+ & \numprint{24211}&0.23 &  \multirow{5}{*}{16} & \multirow{5}{*}{281} \\
+          & Cancer of liver
+ & \numprint{3189}&0.20 &  & \\
+          & Cancer of pancreas
+ & \numprint{2376}&0.20 &  & \\
+          & Intrauterine hypoxia
+ & \numprint{125}&0.20 &  & \\
+          & Cancer of lung
+ & \numprint{11565}&0.19 &  & \\
+         % \cline{2-8}
+\midrule
+     \multirow{5}{*}{2} &  Septicemia, Secondary malignancies
+ & \numprint{7380}&0.51 &  \multirow{5}{*}{268} & \multirow{5}{*}{\numprint{11203}} \\
+          & Septicemia, Cancer of lung
+ & \numprint{3144}&0.47 &  & \\
+          & Coma, Myocard. infarc.
+ & \numprint{2695}&0.47 &  & \\
+          & Secondary malignancies, Pneumonia
+ & \numprint{7866}&0.46 &  & \\
+          & Secondary malignancies, Renal failure
+ & \numprint{7734}&0.45  & & \\
+         % \cline{2-8}
+\midrule
+     \multirow{5}{*}{3} &  Cancer of lung, Septicemia, Secondary malignancies
+ & \numprint{2249}&0.58 &  \multirow{5}{*}{\numprint{2011}} & \multirow{5}{*}{\numprint{329843}} \\
+          & Coag. disord., Secondary malignancies, Septicemia
+ & \numprint{2825}&0.57 & &  \\
+          & Secondary malignancies, Renal failure, Septicemia
+& \numprint{3864}&0.57 & &  \\
+          &  Pneumonia, Secondary malignancies, Septicemia
+& \numprint{3663}&0.57 & &  \\
+         &  Nutritional deficiencies, Secondary malignancies, Septicemia
+ &\numprint{3666}& 0.56 & &  \\
+           % \cline{2-8}
+\midrule
+      \multirow{5}{*}{4} & Septicemia, Renal failure, Cancer of lung, Second. malign.
+ & \numprint{991}& 0.62 &  \multirow{5}{*}{\numprint{11901}} & \multirow{5}{*}{\numprint{7291810}} \\
+         &  Septicemia, Coag. disord., Gastrointestinal  hemor., Second. malign.
+ & \numprint{745}&0.62 & &  \\
+         & Septicemia, Coag. disord., Cancer of lung, Second. malign.
+ &\numprint{796}& 0.62 & & \\
+         &   Septicemia, Cancer of lung, Pulmonary heart dis., Second. malign.
+ & \numprint{483}&0.61 &  & \\
+         &  Septicemia, Coag. disord., Pneumonia, Second. malign.
+ & \numprint{1461}&0.61 &  & \\
+         \bottomrule
+    \end{tabular}}
+\end{table}
+
+ In order to explore the dataset further, we exclude from the 10.6 million patient dataset, every patient that has cardiac arrest, shock, aspiration pneumonitis, respiratory failure, or malignant neoplasm,  which may be evident to physicians as causing lethal comorbidities. The resulting dataset corresponding to 10.2 million patients is analyzed using the modified BK algorithm and the results are reported in  Table~\ref{tab:10mXBKdeletion}.
+
+From the results  in Table~\ref{tab:10mXBKdeletion}, the individual mortality rate linked to secondary malignancies is the highest among all the (remaining) diseases, although it is much lower at 0.23. Notably, when paired with septicemia it corresponds to the highest mortality rate of 0.51, more than doubling mortality rate of secondary malignancies and more than the sum of the individual mortality rates. These two diseases continue to remain among the top-two highest mortality rate cliques when we increase $b$ to three and then to four, with the respective rates increasing to 0.58  and then to 0.62. This perspective into lethal comorbidities derived from the EHR dataset after excluding the  diseases that dominate the most lethal cliques illustrates how the proposed framework may be used to better understand lesser known comorbidities. This is especially important given how the maximum mortality rate rapidly escalates in the presence of comorbidities, even though it may not occur intuitively to practitioners.
+
+The findings presented in Tables~\ref{tab:10mXBK} and~\ref{tab:10mXBKdeletion} demonstrate that the modified BK algorithm tackled these large-scale datasets within a reasonably short span of less than three hours in computation time. These results offer compelling evidence that our proposed methodology seamlessly integrates with real-world datasets, underscoring its robustness and effectiveness in practical healthcare analytics settings.
+
+Additional results and analysis are detailed in the paper,
+\textit{``Identifying Most Lethal Cliques in Disease Comorbidity Graphs''}, published in \textit{IISE Transactions on Healthcare Systems Engineering}~\citep{VaghfiMohebbi25}.
+
+
+% \subsection{Research Task 3}
+% So far our experiments focused on finding all lethal cliques, while the next experiments focus on finding marginal lethal cliques, problem~\eqref{eq.MMRPclq} when $C^0$ is not empty. For experiments in this section, we consider the 10.2 million patient dataset described in the previous section that excludes every patient with any of the following diseases: cardiac arrest, shock, aspiration pneumonitis, respiratory failure, and malignant neoplasm. From Table~\ref{tab:10mXBKdeletion}, for each value of $b$, we fix the fifth highest mortality rate clique as $C^0$. We choose $C^0$ in this manner as the results in Tables~\ref{tab:10mXBK} and~\ref{tab:10mXBKdeletion} already demonstrate a sequence of containment relationships among the cliques as $b$ is increased. With this choice of $C^0$, we aim to identify high marginal mortality rate cliques not readily apparent from the results  in Table~\ref{tab:10mXBKdeletion}.  
+
+
+% We first report on our experiments on the impact of adding a new disease $u \in V\setminus C^0$ on the mortality rate. In this experiment, we do not require that $C^0 \cup \{u\}$ forms a clique. Then, we evaluate the modified BK algorithm when it is tasked to find maximum marginal mortality rate cliques. 
+% Specifically, we conduct the following experiments with each $C^0$ chosen as described above: (\textit{i})~For each $u \in V\setminus C^0$, compute the mortality rate of  $C^0 \cup \{u\}$ and return the top-3 highest marginal mortality rate \textit{subsets} containing $C^0$. (\textit{ii})~Find the top-3 highest marginal mortality rate cliques with respect to to $C^0$  using Algorithm~\ref{alg.BKMMRC} when allowing the addition of one and two more diseases. 
+
+
+% % %%%t5 NEW
+% \begin{table}[!ht]
+% \caption{Top-3 most lethal subsets formed by the addition of a single disease.}
+% \label{tab:margMRplus1SA}
+% \tiny \centering 
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{lclcrr}
+% \toprule
+% {Initial clique $C^0$} & \multicolumn{1}{c}{{$\mu(C^0)$}} & {Additional disease $u$} & {$\mu(C^0 \cup \{u\})$} & {\%Increase} & Cluster type\\
+% \midrule
+% \multirow{3}{*}{Cancer of lung} & 0.19 & Coma & 0.51 & 168\% & {1-defective clique} \\
+%  & 0.19 & Septicemia & 0.47 & 147\% & clique \\
+%  & 0.19 & Chronic ulcer of skin & 0.40 & 110\% & 1-defective clique \\
+%  \midrule
+% \multirow{3}{*}{\shortstack[l]{Secondary   malignancies\\ Renal failure}} & 0.45 & Coma & 0.63 & 40\% & 1-defective clique\\
+%  & 0.45 & Septicemia & 0.57 & 26\% & clique \\
+%  & 0.45 & Cancer of esophagus & 0.55 & 22\% & 2-defective clique \\
+%  \midrule
+% \multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Nutritional deficiencies}} & 0.56 & Cancer of esophagus & 0.66 & 17\% & 2-defective clique\\
+%  & 0.56 & Coma & 0.65 & 16\% & 1-defective clique \\
+%  & 0.56 & Cancer of lung & 0.60 & 7\% &  clique \\
+%  \midrule
+% \multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Pneumonia\\ Coag. disorder.}} & 0.61 & Coma & 0.67 & 9\% & 1-defective clique \\
+%  & 0.61 & Cancer of pancreas & 0.65 & 6\% & 3-defective clique \\
+%  & 0.61 & Chronic ulcer of skin & 0.65 & 6\% & 1-defective clique \\[3pt]
+%  \bottomrule
+% \end{tabular}%
+% }
+% \end{table}
+
+
+
+
+% Table~\ref{tab:margMRplus1SA} reports the results from our one-sided sensitivity analysis with respect to the clique size upper-bound being increased by one. For each $C^0$ considered in the first column, we report the additional disease $u$ that corresponds to the highest, second highest and the third highest increase in mortality rate in the third column. Column labeled ``\%Increase'' reports the percentage by which $\mu(C^0 \cup \{u\})$ has increased over $\mu(C^0)$. 
+% In this test instance, we observe that when $C^0$ is smaller, $\mu(C^0)$ is typically smaller and significant increases are possible (and observed) by the addition of a single disease. 
+% For example, the initial clique containing one disease, cancer of lung, adding coma   increases mortality rate by 168\%. Conversely, when $C^0$ is larger, $\mu(C^0)$ is already quite high and the observed increases from the addition of another disease is not as significant. For example, when $|C^0| = 4$, the largest increase in mortality rate is less than 10\%. These observations also reiterate our emphasis on small but lethal cliques in this article and substantiate our parameter choice in conducting computational experiments with $b \le 4$.
+
+% Another key observation concerns the types of subsets we detect corresponding to the three highest marginal mortality rates, as indicated under the column labeled ``Cluster type''. We characterize them using a graph-theoretic clique relaxation known as a $k$-defective clique, which is a subset of vertices that induces a subgraph that falls short of containing all possible edges by at most $k$ edges. Formally, $S \subset V$ is a $k$-defective clique if the induced subgraph $G[S]$ contains at least $\binom{|S|}{2} - k$ edges. 
+% A classical clique is therefore 0-defective. We characterize the subsets we find in terms of defective cliques as they are,  in our opinion, a more intuitive choice in this context. Other authors, for example, may choose to characterize these using other clique relaxations like $k$-plexes~\citep{BBSBIVH11kplex} or $\gamma$-quasi-cliques~\citep{Pattillo2013qclique} with an appropriate choice of the  parameters $k$ and $\gamma$. 
+
+
+% Our analysis reveals that 9 out of the 12 subsets are 0-defective or 1-defective cliques, although when a 2-vertex subset is 1-defective, it is simply two isolated vertices, which is arguably not a very interesting cluster. However, 9 out of the 12 subsets  induce  connected subgraphs and we visualize three such examples in Figure~\ref{fig.defclq123}.
+% It is worth reiterating that an edge in the comorbidity graph is constructed based on co-occurrence between the endpoints in the EHR dataset under consideration. Hence,  for two diseases $u,v \in V$, it is possible that $\SCI_{uv} < \Delta$  while $|A_u \cap A_v| \ge \ell$, permitting a subset of vertices to contain non-adjacent diseases although it corresponds to a mortality rate strictly larger than zero.  We remark that the choice of $\ell =100 $ in our experiments is arbitrary, and larger values of lower-bound $\ell$ may yield different clusters.
+
+
+% \begin{figure}[!ht]
+% 	\centering
+% 	\begin{tikzpicture}
+% 	[scale=.8,auto=left,every node/.style={circle, draw, black, fill=blue!20 , minimum size = 2pt}]
+	
+% 	\node (n1) at (-1,1){$u$};
+% 	\node (n2) at (-3.25,4)  {};
+% 	\node (n3) at (-3.25,2.5)  {};
+%     \node (n4) at (1.25,4) {};
+% 	\node (n5) at (1.25,2.5)  {};
+
+%          \node (x1) at (4.5,1){$u$};
+% 	\node (x2) at (2.5,4)  {};
+% 	\node (x3) at (4.5,2.5)  {};
+% 	\node (x5) at (6.5,4)  {};
+
+% 	\node (c1) at (8,2.5){};
+% 	\node (c2) at (8,4)  {};
+% 	\node (c3) at (8,1)  {$u$};
+% 	\node (c4) at (10,2.5) {};
+% 	\node (c5) at (10,4)  {}; 
+	
+% 	\foreach \from/\to in {n1/n5,n2/n5,n3/n5,n3/n1,n3/n2,n4/n2, n4/n3,n4/n2,n4/n5,n1/n2,
+%  x2/x5,x3/x5,x3/x1,x3/x2,
+%  c1/c2,c1/c3,c1/c4,c1/c5,c2/c4,c2/c5,c4/c5}
+% 	\draw[thick] (\from) -- (\to);
+% 	\end{tikzpicture}
+% 	\caption{From left to right, we visualize the subgraphs induced by the following subsets identified in Table~\ref{tab:margMRplus1SA}: 1-defective clique \{Septicemia,   Secondary malignancies, Pneumonia, Coag disorder, Coma ($u$)\}; 2-defective clique \{Septicemia,   Secondary malignancies, Nutritional deficiencies, Cancer of esophagus ($u$)\}; 3-defective clique \{Septicemia,   Secondary malignancies, Pneumonia, Coag disorder, Cancer of pancreas ($u$)\}. The added vertex $u$ is labeled in the graphs.} \label{fig.defclq123}
+% \end{figure}
+
+% %%%Marg MR clique results
+% Our final experiments assess the performance of Algorithm~\ref{alg.BKMMRC} given a non-empty $C^0$. The modified BK algorithm is effective on the large-scale dataset we have considered, and it is extremely fast when  an initial clique of diseases $C^0$ is provided. We can also see from the results in Tables~\ref{tab:margMRplus1t4} and~\ref{tab:margMRplus2t4} that this experiment offers information complementary to that reported in Tables~\ref{tab:10mXBKdeletion}, and we observe trends similar to Table~\ref{tab:margMRplus1SA}. Through this experiment we can recognize the disease(s) to be most wary of when a patient  is already diagnosed with an existing clique of diseases, which is the main purpose behind investigating marginal mortality rates.
+
+% % %%%t5 OLD t6 NEW
+% \begin{table}[!ht]
+% \caption{Top-3 most lethal cliques formed by the addition of a single disease.}
+% \label{tab:margMRplus1t4}
+% \tiny \centering 
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{lclcrrr}
+% \toprule
+% {$C^0$} & \multicolumn{1}{c}{{$\mu(C^0)$}} & {Additional disease $u$} & {$\mu(C^0 \cup \{u\})$} & {\%Increase} & Time (s) & \#RC \\
+% \midrule
+% \multirow{3}{*}{Cancer of lung} & 0.19 & Septicemia & 0.47 & 147\% & \multirow{3}{*}{2} & \multirow{3}{*}{48} \\
+%  & 0.19 & Renal failure & 0.40 & 110\% &  &  \\
+%  & 0.19 & Pneumonia & 0.38 & 100\% &  &  \\
+%  \midrule
+% \multirow{3}{*}{\shortstack[l]{Secondary   malignancies\\ Renal failure}} & 0.45 & Septicemia & 0.57 & 26\% & \multirow{3}{*}{2} & \multirow{3}{*}{75} \\
+%  & 0.45 & Pneumonia & 0.54 & 20\% &  &  \\
+%  & 0.45 & Cancer of liver & 0.53 & 17\% &  &  \\
+%  \midrule
+% \multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Nutritional deficiencies}} & 0.56 & Cancer of lung & 0.60 & 11\% & \multirow{3}{*}{2} & \multirow{3}{*}{70} \\
+%  & 0.56 & Coag. disord. & 0.60 & 11\% &  &  \\
+%  & 0.56 & Pneumonia & 0.60 & 11\% &  &  \\
+%  \midrule
+% \multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Pneumonia\\ Coag. disorder.}} & 0.61 & Gastrointestinal  hemor. & 0.64 & 4\% & \multirow{3}{*}{2} & \multirow{3}{*}{69} \\
+%  & 0.61 & Intest. obstruc. w hernia & 0.64 & 4\% &  &  \\
+%  & 0.61 & Renal failure & 0.63 & 3\% &  & \\[3pt]
+%  \bottomrule
+% \end{tabular}%
+% }
+% \end{table}
+
+% % %%%%t7
+% \begin{table}[!ht]
+% \caption{Top-3 most lethal cliques formed by the addition of two diseases.}
+% % $C^0$ Obtained from Table~\eqref{tab:10mXBKdeletion}
+% \label{tab:margMRplus2t4}
+%  \tiny \centering
+% \resizebox{\textwidth}{!}{%
+% \begin{tabular}{lclcrrr}
+% \toprule
+% {$C^0$} & \multicolumn{1}{c}{{$\mu(C^0)$}} & {Additional diseases $u,v$} &{$\mu(C^0 \cup \{u,v\})$} & {\%Increase} & {Time (s)} & {\#RC} \\
+% \midrule
+% \multirow{3}{*}{{Cancer   of lung}} & {0.19} & {Secondary   malignancies, Septicemia} & {0.57} & {200\%} & \multirow{3}{*}{{3}} & \multirow{3}{*}{{959}} \\
+%  & 0.19 & Coag. disord., Septicemia & 0.55 & 189\% &  &  \\
+%  & 0.19 & Nutritional deficiencies, Septicemia & 0.53 & 178\% &  &  \\
+% \midrule
+% \multirow{3}{*}{\shortstack[l]{Secondary   malignancies\\ Renal failure}} & 0.45 & Cancer of lung, Septicemia & 0.62 & 37\% & \multirow{3}{*}{3} & \multirow{3}{*}{2454} \\
+%  & 0.45 & Coag. disord., Septicemia & 0.61 & 35\% &  &  \\
+%  & 0.45 & Pneumonia, Septicemia & 0.60 & 33\% &  &  \\
+% \midrule
+% \multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Nutritional deficiencies}} & 0.56 & Gastrointestinal  hemorr., Coag. disord. & 0.64 & 14\% & \multirow{3}{*}{3} & \multirow{3}{*}{2318} \\
+%  & 0.56 & Renal failure, Cancer of lung & 0.63 & 12\% &  &  \\
+%  & 0.56 & Liver disease, Renal failure & 0.63 & 12\% &  &  \\
+% \midrule
+% \multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Pneumonia\\ Coag. disorder.}} & 0.61 & Gastrointestinal  hemor., Bone disease & 0.69 & 13\% & \multirow{3}{*}{2} & \multirow{3}{*}{2220} \\
+%  & 0.61 & Gastrointestinal  hemor., Phlebitis & 0.68 & 11\% &  &  \\
+%  & 0.61 & Intest. obstruc. w hernia, E Code: medical drugs & 0.67 & 9\% &  &  \\[3pt]
+%  \bottomrule
+% \end{tabular}%
+% }
+% \end{table}
+
+
+\section{Results of RO-~\ref{it.RO2}}
+As our research is ongoing, and significant findings have yet to emerge, we present a concise, interim progress update below.
+
+We can model  problem~\eqref{eq.MMRP} as an MIP using the binary decision variable $x_j =1$ to indicate that disease $j \in V$ is selected in the cluster; $x_j =0$ otherwise. Let the set $X \subset \{0,1\}^{|V|}$ denote the collection of binary incidence vectors of clusters of interest in the comorbidity graph. For each patient $i \in P$, we can associate a binary variable  $y_i =1$ to indicate that patient $i$ has all diseases selected in the cluster $C = \{j\in V: x_j=1\}$. 
+\begin{subequations}\label{form.fpRO2}
+\begin{align}
+  \max \quad & \frac{\sum\limits_{i \in \widetilde{P}} y_i}{\sum\limits_{i \in P} y_i} \label{eq.fraclinearFPRO2} &&\\
+\text{s.t.} \quad 
+\label{eq.xyconnectupper-disaggFPRO2}  &y_i \le   1- x_j  && \forall j \in V\setminus D_i,  i \in P\\
+ \label{eq.xyconnectlowerFPRO2}& y_i \ge 1-\sum_{j \in V\setminus D_i}x_j  &&\forall i \in P\\
+ \label{eq.denomLBFPRO2} & \sum_{i \in P} y_i \ge \ell &&\\
+ \label{eq.ybinFPRO2}  & y_i \in \{0,1\}  &&\forall i \in P \\
+ \label{eq.xin X} & x \in X, & 
+\end{align}
+\end{subequations}
+where the set $X$ contains the feasible binary incidence vectors of bounded-size cliques in the comorbidity graph $G=(V,E)$, it can be described by the following constraints:
+\begin{subequations}\label{form.clqedgecons4X}
+\begin{align}
+  {x}_u + {x}_v &\le 1 && \forall \{u,v\} \in  \widebar E\\
+ \sum_{u \in V} {x}_u &\le b  && \\
+x_u &\in \{0,1\} &&\forall u \in V     
+\end{align}
+\end{subequations}
+We wish to maximize the   mortality rate in the fractional objective function~\eqref{eq.fraclinearFPRO2}. Constraint~\eqref{eq.xyconnectupper-disaggFPRO2} ensures that if a disease $j$ not afflicting patient $i$ is included in the cluster, the $y_i$ is forced to zero. Or equivalently, if $y_i = 1$, then $x_j = 0$ for every $j \in V\setminus D_i$. The converse is enforced by constraint~\eqref{eq.xyconnectlowerFPRO2} as $y_i = 0$ forces the inclusion of at least one disease not afflicting patient $i$ in the cluster. Or equivalently, if $x_j = 0$ for every $j \in V\setminus D_i$, then $y_i = 1$. Hence, $y_i = 1$ if and only if patient $i$ is afflicted with every disease included in the selected cluster represented by the incidence vector $x$. In order for the mortality rate to be indicative and to avoid trivial solutions, constraint~\eqref{eq.denomLBFPRO2} imposes a lower bound $\ell$ on the number of patients that have all of the  diseases included in the cluster. 
+We note that instead of cliques, relaxed versions such as $k$-plexes, robust 2-clubs, quasi-cliques, and defective cliques can be considered. These relaxations permit non-adjacent vertex pairs within the cluster, making them less sensitive to missing edges~\cite{Pattillo2013CR}. 
+
+A mixed-integer linear program (MILP) that is equivalent to formulation~\eqref{form.fpRO2} can be obtained by linearizing the fractional objective function as follows. The fractional objective function of formulation~\eqref{form.fpRO2} is substituted using a new variable as $z = {\sum\limits_{i \in \widetilde{P}} y_i}/{\sum\limits_{i \in P} y_i}$.
+ We introduce new continuous variables $w_i \in [0,1]$ for each $i\in P$ to linearize the product $zy_i$. 
+ If $y_i = 0$, constraint~\eqref{eq.wto0} forces $w_i = 0$, while constraints~\eqref{eq.wtozLB} and~\eqref{eq.wtozUB} are redundant. If $y_i =1$, constraints~\eqref{eq.wtozLB} and~\eqref{eq.wtozUB} force $w_i=z$, with constraint~\eqref{eq.wto0} being redundant. Effectively, constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB} force each $w_i$ to equal $zy_i$, and consequently, equation~\eqref{eq.modz} models the objective function as desired. 
+\begin{subequations}\label{form.milp}
+\begin{align}
+    \max \quad & z && \\
+\text{s.t.} \quad  \label{eq.wto0}     & w_i \le y_i && \forall i\in P\\ 
+ \label{eq.wtozLB}   & w_i \ge z + y_i -1 && \forall i\in P\\
+  \label{eq.wtozUB}  & w_i \le z && \forall i\in P\\
+\label{eq.modz} & \sum_{i \in \widetilde{P}} y_i = \sum_{i \in P} w_i && \\
+ & \eqref{eq.xyconnectupper-disaggFPRO2}, \eqref{eq.xyconnectlowerFPRO2}, \eqref{eq.denomLBFPRO2}, \eqref{eq.ybinFPRO2}, \eqref{eq.xin X} && \nonumber\\
+ \label{eq.zbound} &z \in [0,1] && \\
+       \label{eq.wbound} &w_i \in [0,1] && \forall i\in P
+\end{align}
+\end{subequations}
+We replace constraints~\eqref{eq.xyconnectupper-disaggFPRO2} with its  aggregated counterpart~\eqref{form.aggregated}, which led to a noticeable reduction in overall running times in our preliminary experiments, possibly due to the reduced size of the basis. 
+\begin{align}\label{form.aggregated}
+   & |V\setminus D_i|y_i \le   |V\setminus D_i|- \sum_{j \in V\setminus D_i}x_j  && \forall i \in P
+\end{align}
+We use a delayed branch-and-cut (DBC) to implement model~\eqref{form.milp} described as follows. Constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB} are generated using the ``lazy cut'' functionality in Gurobi. At the root node of the B\&C tree, we begin with a relaxation that does not include any of the constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB}. Whenever an integral solution to the LP relaxation is encountered at a BC node, all violated constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB} are added to the node as lazy cuts. Gurobi re-solves the LP relaxation and manages the subsequent branching at that node. We set a 3-hour time limit for each instance solved using the DBC algorithm.
+
+ The detailed results of solving formulation~\eqref{form.milp} using the DBC algorithm are documented in Table~\ref{table:DBCexp} in the appendix and summarized in Table~\ref{tab:mipresults-sum}. The columns labeled ``Size'',  ``$b$'', and ``\#Optimal'' in Table~\ref{tab:mipresults-sum} identify the patient size in the test instance used, the clique size upper-bound, and the number of instances solved to optimality, respectively. The next three columns report the average and the range (minimum and maximum) observed over the five random samples of the following quantities (in order): the mortality rate objective function value of the best solution found, the termination MIP gap for instances not solved to optimality, and the wall-clock running time for model building and solution for instances solved to optimality. It is apparent from the results that despite using decomposition  and delayed constraint generation, the MILP based approach is unable to solve many of the  instances with patient size \numprint{50000} and \numprint{100000} to optimality.
+\begin{table}[!ht]
+    \centering \tiny
+     \caption{Summary of results from using the DBC algorithm to solve formulation~\eqref{form.milp}. Unknown (UNK) means that no value was reported by the solver as the termination was due to a memroy related crash. TO stands for time-out, the solver terminated reaching the 3-hour time limit.}
+\resizebox{\textwidth}{!}{   \begin{tabular}{lccrcrcrc}
+    \toprule
+      Size   & $b$ &\#Optimal & Avg $\mu$ & [min, max] & Avg gap (\%) & [min, max] & Avg time (s) & [min, max]  \\
+      \midrule
+        \multirow{4}{*}{\numprint{1000}} & 1 & 5 & 0.30 & $[0.14, 0.53]$ & 0 & - & 3 & $[2, 3]$ \\
+        & 2 & 5 & 0.45 & $[0.20, 0.63]$ & 0 & - & 43 & $[15, 135]$ \\
+        & 3 & 5 & 0.48 & $[0.25, 0.70]$ & 0 & - & 27 & $[13, 72]$ \\
+        & 4 & 5 & 0.51 & $[0.30, 0.70]$ & 0 & - & 22 & $[11, 45]$ \\
+        \midrule
+        \multirow{4}{*}{\numprint{5000}} & 1 & 5 & 0.63 & $[0.50, 0.73]$ & 0 & - & 63 & $[42, 84]$ \\
+        & 2 & 5 & 0.68 & $[0.50, 0.75]$ & 0 & - & \numprint{4285} & $[483, \numprint{8895}]$ \\
+        & 3 & 4 & 0.72 & $[0.60, 0.80]$ & 66 & $[66, 66]$ & \numprint{6258} & $[\numprint{3457}, \text{TO}]$ \\
+        & 4 & 3 & 0.71 & $[0.60, 0.83]$ & 62 & $[57, 66]$ & \numprint{3806} & $[\numprint{554}, \text{TO}]$ \\
+        % & 3 & 4 & 0.75 & $[0.72, 0.80]$ & 66 & $[66, 66]$ & \numprint{6258} & $[\numprint{5277}, \numprint{10368}]$ \\
+        % & 4 & 3 & 0.78 & $[0.73, 0.83]$ & 62 & $[57, 66]$ & \numprint{3806} & $[\numprint{554}, \numprint{6725}]$ \\
+        \midrule
+        \multirow{4}{*}{\numprint{50000}} & 1 & 0 & 0.68 & $[0.64, 0.72]$ & 45 & $[36, 56]$ & TO & TO \\
+        & 2 & 0 & 0.77 & $[0.67, 0.84]$ & 29 & $[18, 47]$ & TO & TO \\
+        & 3 & 2 & 0.91 & $[0.80, 1.00]$ & 16 & $[7, 25]$ & \numprint{4022} & $[\numprint{2810}, \text{TO}]$ \\
+        & 4 & 5 & 1.00 & $[1.00, 1.00]$ & 0 & - & \numprint{4024} & $[\numprint{1060}, \numprint{9735}]$ \\
+        \midrule
+        \multirow{4}{*}{\numprint{100000}} & 1 & 0 & 0.46 & $[0.05, 0.69]$ & 632 & $[44, \numprint{1800}]$ & TO & TO \\
+        & 2 & 0 & 0.31 & $[0.03, 0.43]$ & 979 & $[107, 2700]$ & TO & TO \\
+        & 3 & 2 & 0.67 & $[0.02, 1.00]$ & \numprint{3698} & $[\numprint{3698}, \numprint{3698}]$ & TO & $[\numprint{5032}, \text{TO}]$ \\
+        & 4 & 2 & 1.00 & $[1.00, 1.00]$ & UNK & $[0, \text{UNK}]$ & TO & $[\numprint{4492}, \text{TO}]$ \\
+      \bottomrule
+    \end{tabular}}
+    \label{tab:mipresults-sum}
+\end{table}
+
+It is easy to see that if $x$ is binary, and $y \in [0,1]$, constraints~\eqref{eq.xyconnectupper-disaggFPRO2} and~\eqref{eq.xyconnectlowerFPRO2} force $y$ to be binary. To develop other exact methods, we also considered the Charnes--Cooper transformation. In problem~\eqref{form.fpRO2}, define $t=\frac{1}{\sum\limits_{i \in P} y_i}$, $\Hat{y}_i = t y_i$ for $i\in P$, and $\Hat{x}_j = t x_j $ for $j \in V$. The result of applying this transformation is model~\eqref{form.CCIP}.
+\begin{subequations}\label{form.CCIP}
+\begin{align}
+  \label{eq.fraclinearcc} \max \quad  & {\sum\limits_{i \in \widetilde{P}}\Hat{y}_i} &&   \\
+\text{s.t.}\quad 
+\label{eq.xyconnectupper-disaggcc} & \Hat{y}_i \le   t-\Hat{x}_j  && \forall j \in V\setminus D_i,  i \in P\\
+ \label{eq.xyconnectlowerFPcc} & \Hat{y}_i \ge t-\sum_{j \in V\setminus D_i}\bar{x}_j  && \forall i \in P \\
+ \label{eq.xlin1CC} & \Hat{x}_j \ge t-\frac{1}{\ell}(1-x_j) &&\forall j \in V \\
+ \label{eq.xlin2CC} &\Hat{x}_j \le \frac{1}{\ell} x_j &&\forall j \in V \\
+  \label{eq.xlin3CC} &\Hat{x}_j \le t &&\forall j \in V \\
+ % \label{eq.denomLBcc}  \sum_{i \in P}\Hat{y}_i &\ge t\ell &\\
+ \label{eq.denomCC} &\sum_{i \in P}\Hat{y}_i =  1 &&\\
+\label{eq.alpha}& \Hat{x}_j\ge 0 && \forall j \in V \\
+&\eqref{form.clqedgecons4X} && \nonumber\\
+\label{eq.w} &\Hat{y}_i\in  \big{[}0,\frac{1}{\ell}\big{]} && \forall i \in P \\
+% \label{eq.xbincc} & x_j\in \{0,1\} && \forall j \in V \\
+\label{eq.t} & t \in  \big{[}\frac{1}{|P|},\frac{1}{\ell}\big{]} &&
+\end{align}
+\end{subequations}
+
+By generating constraints~\eqref{eq.xyconnectupper-disaggcc} and~\eqref{eq.xyconnectlowerFPcc} on-the-fly, we obtain the results presented in Table~\ref{table:DBC_CC} and summarized in Table~\ref{tab:summCC}.
+\begin{table}[!ht]
+    \centering \tiny
+     \caption{Summary of results from applying the delayed constraint generation in Charnes-Cooper transformation to solve formulation~\eqref{form.CCIP}. TO stands for time-out, the solver terminated reaching the 3-day time limit.}
+\resizebox{\textwidth}{!}{   \begin{tabular}{lccrcrcrc}
+    \toprule
+      Size   & $b$ &\#Optimal & Avg $\mu$ & [min, max] & Avg gap (\%) & [min, max] & Avg time (s) & [min, max]  \\
+      \midrule
+        \multirow{3}{*}{\numprint{1000}} & 2 & 5 & 0.45 & $[0.20, 0.63]$ & 0 & - & 6 & $[1, 10]$ \\
+        & 3 & 5 & 0.48 & $[0.25, 0.70]$ & 0 & - & 6 & $[2, 12]$ \\
+        & 4 & 5 & 0.51 & $[0.30, 0.70]$ & 0 & - & 12 & $[2, 22]$ \\
+        \midrule
+        \multirow{3}{*}{\numprint{5000}} & 2 & 5 & 0.68 & $[0.50, 0.75]$ & 0 & - & \numprint{137} & $[90, 224]$ \\
+        & 3 & 5 & 0.72 & $[0.63, 0.80]$ & 0 & - & \numprint{332} & $[180, 474]$ \\
+        & 4 & 5 & 0.74 & $[0.63, 0.83]$ & 0 & - & \numprint{297} & $[270, 339]$ \\
+        \midrule
+        \multirow{3}{*}{\numprint{50000}} & 2 & 5 & 0.81 & $[0.73, 0.84]$ & 0 & - & \numprint{10288} & $[\numprint{1632}, \numprint{24367}]$ \\
+        & 3 & 5 & 0.98 & $[0.91, 1.00]$ & 0 & - & \numprint{36119} & $[\numprint{1432}, \numprint{109155}]$ \\
+        & 4 & 5 & 1.00 & $[1.00, 1.00]$ & 0 & - & \numprint{24375} & $[\numprint{3988}, \numprint{60973}]$\\
+        \midrule
+        \multirow{3}{*}{\numprint{100000}} & 2 & 4 & 0.78 & $[0.76, 0.83]$ & 2 & $[0, 8]$ & \numprint{44251} & $[\numprint{9810}, \numprint{81727}]$ \\
+        & 3 & 3 & 0.98 & $[0.93, 1.00]$ & \numprint{5} & $[7, 17]$ & TO & $[\numprint{44982}, \text{TO}]$ \\
+        & 4 & 5 & 1.00 & $[1.00, 1.00]$ & 0 & - & \numprint{54922} & $[\numprint{9810}, \numprint{112659}]$ \\
+      \bottomrule
+    \end{tabular}}
+    \label{tab:summCC}
+\end{table}
+
+\section{Results of RO-~\ref{it.RO3}}
+In this section, we explore matheuristic techniques for solving problem~\eqref{eq.MMRPclq}. Formulation~\eqref{form.paramIP} that follows is a parametric MILP, which given a constant $\theta \in [0,1]$, seeks a feasible solution with mortality rate of at least $\theta$, if one exists.
+\begin{subequations}\label{form.paramIP}
+\begin{align}
+ f(\theta) &\coloneqq \label{eq.paramobj} \max\  0   \\
+\text{s.t.}\quad \label{eq.thetacon} &\sum\limits_{i \in \widetilde{P}} y_i - \theta\sum\limits_{i \in P} y_i \ge 0 \\
+& \eqref{eq.xyconnectupper-disaggFPRO2}, \eqref{eq.xyconnectlowerFPRO2}, \eqref{eq.denomLBFPRO2}, \eqref{eq.ybinFPRO2}, \eqref{eq.xin X} && \nonumber
+\end{align}
+\end{subequations}
+
+To find an $\epsilon$-optimal solution, a feasible solution with a mortality rate at most $\epsilon$ below the maximum, we propose {Algorithm~\ref{alg.ParralSV2}}. We evaluate its performance on {instances 1 and 5} in Table \ref{tab:ParallelV2Results}, selected as representative small sample test cases.
+\begin{algorithm}[!htbp]
+\footnotesize
+\label{alg.ParralSV2}
+\SetAlgoLined
+\KwIn{Current best solution $\mu_0^*$, search interval $[L,U]$, tolerance $\epsilon$}
+\KwOut{The best \text{clique} \big{<}$C, \mu(C)$\big{>} and Interval width $U-L$}
+
+\While{$U - L > \epsilon$}{
+  Select $K$ distinct points $\theta_i$ for $i=1,\ldots,K$ (possibly, equally spaced) from the interior of $[L,U]$\\
+  \For{$i=1$,\ldots,K}{
+    Solve subproblem-$i$, i.e., problem~\eqref{form.paramIP} with parameter $\theta_i$\\
+  }
+  Update the best solution and set $L \gets$ mortality rate of the feasible subproblem-$i$ with largest $i$\\
+  Set $U \gets \theta_i$ for the smallest $i$ where subproblem-$i$ is infeasible\\
+}
+\caption{Parallel Search for Maximum Mortality Rate}
+\end{algorithm}
+
+\begin{table}[!htbp]
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcllclrccrr}
+\toprule
+Sample & No & $C_0$ &$ \mu_0^* $& $b$ & $C$ & $\mu$ & $L$ & $U$ & Time (s) & Gap (\%)\\
+\midrule
+\multirow{6}{*}{\numprint{1000}} & \multirow{3}{*}{1} & \multirow{3}{*}{Coma} & \multirow{3}{*}{0.14} & 2 & Skin tissue infect., Defic. and anemia & 0.20 & 0.20 & 0.20 & 25 & 0\\
+ &  &  &  & 3 & Urinary tract infect., Unclassified, Disord. of lipid metabol. & 0.25 & 0.25 &  0.25 &21 & 0 \\
+ &  &  &  & 4 & Urinary tract infect., Unclassified, Disord. of lipid metabol., Defic. and anemia & 0.30 & 0.30 & 0.30 & 20 & 0\\
+ \cmidrule{2-11}
+ & \multirow{3}{*}{5} & \multirow {3}{*}{Resp. fail.} & \multirow{3}{*}{0.31} & 2 &  Liver dis., Fever of unk. origin & 0.50 &  0.50 & 0.51 & 26 & 0\\
+ &  &  &  & 3 &  Liver dis., Fever of unk. origin & 0.50 & 0.50 & 0.51 & 38 & 0\\
+ &  &  &  & 4 &  Liver dis., Fever of unk. origin & 0.50 & 0.50 & 0.51 & 48 & 0\\
+ \midrule
+\multirow{6}{*}{\numprint{5000}} & \multirow{3}{*}{1} & \multirow{3}{*}{Cardiac arrest} & \multirow{3}{*}{0.60} & 2 & Resp. fail., Cardiac arrest & 0.75 & 0.73 & 0.75 & 103 & 0\\
+ &  &  &  & 3 & Shock, Resp. fail., Coma & 0.80 & 0.50 & 0.80 & \numprint{2167} &0\\
+ &  &  &  & 4 & Septicemia, Resp. fail.,  Liver dis., Renal fail. & 0.83 & 0.76 & 0.83 & \numprint{3903} &0\\
+  \cmidrule{2-11}
+ & \multirow{3}{*}{5} & \multirow{3}{*}{Cardiac arrest} & \multirow{3}{*}{0.62} & 2 & Shock, Mental health  & 0.70 & 0.67 & 0.70 & 307 &0\\
+ &  &  &  & 3 & Spondylosis, Septicemia, Resp. fail. & 0.76 & 0.72 & 0.75 & \numprint{3779} &0\\
+ &  &  &  & 4 & Urinary tract infect., Resp. fail., Pneumonia, Abdominal pain & 0.80 & 0.80 & 0.80 & \numprint{5240} &0\\
+ \midrule
+\multirow{6}{*}{\numprint{50000}} & \multirow{3}{*}{1} & \multirow{3}{*}{Cardiac arrest} & \multirow{3}{*}{0.68} & 2 & - & - & 0.19 & 0.68 & \numprint{1825} & 100\\
+ &  &  &  & 3 & - & - & 0.28 & 0.68 & \numprint{1876} & 100\\
+ &  &  &  & 4 & Multiple myeloma, Coag. and hemor. disord. & 0.28 & 0.06 & 0.28 & \numprint{3496} & 72\\
+  \cmidrule{2-11}
+ & \multirow{3}{*}{5} & \multirow{3}{*}{Cardiac arrest} & \multirow{3}{*}{0.62} & 2 & - & - & 0.28 & 0.62 & \numprint{1842} & 100\\
+ &  &  &  & 3 & Cancer of esophagus & 0.22 & 0.15 & 0.22 & \numprint{3511} & 75\\
+ &  &  &  & 4 & - & - & 0.19 & 0.62 & \numprint{1876} & 100\\
+ \midrule
+\multirow{6}{*}{\numprint{100000}} & \multirow{3}{*}{1} & \multirow{3}{*}{Cardiac arrest} & \multirow{3}{*}{0.69} & 2 & Resp. fail. & 0.24 & 0.02 & 0.24 & \numprint{3501} & 68\\
+ &  &  &  & 3 & Hematologic cond. & 0.04 & 0.04 & 0.04 & \numprint{3480} & 96\\
+ &  &  &  & 4 & Pulmonary heart dis. & 0.12 & 0.02 & 0.12 & \numprint{3526} & 88\\
+  \cmidrule{2-11}
+ & \multirow{3}{*}{5} & \multirow{3}{*}{Cardiac arrest} & \multirow{3}{*}{0.63} & 2 & E Code.: Drowning & 0.27 & 0.27 & 0.28 & \numprint{1856} & 63\\
+ &  &  &  & 3 & Parkinson, Complic. of surgical proced. & 0.21 & 0.02 & 0.21 & \numprint{3511} & 70\\
+ &  &  &  & 4 & Coma & 0.20 & 0.06 & 0.20 & \numprint{3546} & 80\\
+\bottomrule
+\end{tabular}%
+}
+\caption{Results of Algorithm~\ref{alg.ParralSV2} for small samples, number 1 and 5 }
+\label{tab:ParallelV2Results}
+\end{table}

@@ -1,0 +1,194 @@
+
+% Our final problem is considering an extension of Research Objective-\ref{it.RO1}. 
+% The process of dividing the full time frame of the \hl{index disease (???)} into discrete time windows and modeling comorbidity within each window as a disease network is referred to as a \emph{temporal disease graph}~\citep{LU2021113583}. \hl{Explain this in a bit more detail and run it by Yajun to make sure your understanding is sound. With his permission you can borrow and reuse their pictures as this is not getting shared outside the committee. Also visualize the atomic cliques with pictures from that OPTL paper. Yajun can provide both.}
+
+
+% An \textit{atomic clique} refers to a clique $C$ that \hl{cannot be divided over time [I don't think this has the same meaning as what we described in the paper. Too vague. You should be more formal in defining what you mean by a temporal graph and an atomic clique so the problem statment is clear. This objective feels a bit rushed.]}. It either exists fully or not at all, meaning no partial version of the clique appears in the temporal graph unless the whole clique is present~\citep{Lu2023atomic}. Our goal is to solve the following problem.
+%     \begin{equation}
+%     \label{eq.atomMRP}\max\left\{\mu(C) : C \text{ is an atomic clique in the temporal graph }\mathcal{G}, |C| \le b, \left|\bigcap\limits_{u \in C} A_u\right| \ge \ell\right\}.
+% \end{equation}
+
+
+% For $\Delta = 0.05$, the threshold of $\ell$~\eqref{eq.ell} in different samples and the complete data set is reported in Table~\eqref{tab.rhsEll}.
+% \begin{table}[!ht]
+%     \centering
+%     \begin{tabular}{l r r}
+%     Sample & R.H.S. & Rounding\\
+%     \toprule
+%          1K & 14.39 & 15 \\
+%          \midrule
+%          5K & 63.94 & 64 \\
+%          \midrule
+%          50K & 604.05 & 605\\
+%          \midrule
+%          500K & 5863.63 & 5864 \\
+%          \midrule
+%          10.6M & 124491.09 & \numprint{124492} \\
+%          \bottomrule
+%     \end{tabular}
+%     \caption{Finding the right-hand-side value of Equation~\eqref{eq.ell}}
+%     \label{tab.rhsEll}
+% \end{table}
+% Our initial results are presented in table~\eqref{tab:mipresultswithout clique10}. Notice that in table~\eqref{tab:mipresultswithout clique10}, (**) does not form a clique. Vertices corresponding to cardiac arrest and poisoning by drugs are not connected in the graph.
+%  \begin{table}[!ht]
+%  \small
+% \scriptsize \centering
+% \resizebox{\textwidth}{!}{\begin{tabular}{ c  c l  r  r  r  r  r } 
+%  \toprule
+%  Sample & $b$ &  Clique  &\#Exp & $\mu$ &  Gap (\%) & Time (s) & \#BCN\\ 
+% \midrule
+%  \multirow{4}{*}{1K} & 1 & Respiratory fail. &3 & 0.20 & 0 & 3 & 95\\
+%  & 2 & E Code. Unspecified, Diab. mell. without complic. & 4 & 0.40 & 0 & 12 & \numprint{5770}\\
+% & 3 & Mental health, Nerv. sys. disord., Liver disease  & 5 & 0.50 & 0 & 18 & \numprint{8907}\\
+%  &4& Mental health, Nerv. sys. disord., Liver disease &  5 & 0.50 & 0 & 17 & \numprint{14619}\\
+
+% \midrule
+
+% \multirow{4}{*}{5K}   & 1 & Cardiac arrest  & 16 & 0.72 & 0 & 63 & \numprint{6493}\\
+%  & 2 & Cardiac arrest, Fluid disord. & 8 & 0.80 &  0 & \numprint{5971} & \numprint{1516930}\\
+% & 3 & Second. Malign., Mental health, Nerv. sys. disord. & 9 & 0.81 & 22 & TO & \numprint{2872944}\\
+% & 4 & Second. Malign., Mental health, Nerv. sys. disord. & 9 & 0.81 & 0 & \numprint{6667} & \numprint{2161505}\\
+
+% \midrule
+
+% \multirow{4}{*}{50K}  & 1 & Cardiac arrest  & 165 & 0.76 & 0 & \numprint{6714} & \numprint{580930}\\
+%  & 2 & ** Cardiac arrest, Poisoning by drugs & 10 & 1.00 & 0 & \numprint{1910} & \numprint{860618}\\
+
+% & 3 & Congest heart fail., Ear and sense organ disord., Acute post. anemia & 5 & 0.50 & 100 & TO & \numprint{872507}\\
+% & 4 & Leukemias, Coag. and hemorr. disord., Dis. of white blood cells & 10 & 1.00 & 83 & TO & \numprint{1236265}\\
+
+% \midrule
+
+% \multirow{4}{*}{500K}  & 1 & Out of Memory   & - & - & - & TO & 1\\
+%  & 2 & Gangrene & 133 & 0.19 & 426 & TO & \numprint{1}\\
+
+% & 3 & Out of Memory   & - & - & - & TO & 0\\
+% & 4 & Rheumatoid, Nausea, Infective arthritis, E Code. medical drug & 2 & 0.14 & 600 & TO & \numprint{1}\\
+% \bottomrule
+% \end{tabular}}
+% \caption{Results of the DBC  Algorithm without Considering Clique Constraints with $\ell =10$.}
+% \label{tab:mipresultswithout clique10}
+% \end{table}
+
+
+
+% Fixing $M = 2$, the table~\eqref{tab:CCresults} summarizes our findings.
+%  \begin{table}[!ht]
+% \label{tab:CCresults}
+% \scriptsize \centering
+% \resizebox{\textwidth}{!}{\begin{tabular}{ c  c l  r  r  r  r  r } 
+%  \toprule
+%  Sample & $b$ &  Clique  &\#Exp & $\mu$ &  Gap (\%) & Time (s) & \#BCN\\ 
+% \midrule
+%  \multirow{4}{*}{1K} & 1 & 29   &3 & 0.20 & 0 & 19 & 224\\
+%  & 2 & 200, 230 & 4 & 0.40 & 0 & 38 & \numprint{463}\\
+% & 3 & 25, 65, 68  & 5 & 0.50 & 0 & 37 & \numprint{326}\\
+%  &4 & 25, 65, 68  & 5 & 0.50 & 0 & 36 & \numprint{288}\\
+
+% \midrule
+
+% \multirow{4}{*}{5K}   & 1 & 252  & 13.01 & 0.76 & 0 & 292 & 339\\
+%  & 2 & 169, 252 & 8.02 & 0.91 &  0 & 782 & \numprint{1617}\\
+% & 3 & 24, 25, 65 & 9.01 & 0.81 & 0 & \numprint{923} & \numprint{7100}\\
+% & 4 & 24, 93, 169, 235 & 9.04 & 0.81 & 0 & 811 & \numprint{2368}\\
+
+% \midrule
+
+% \multirow{4}{*}{50K}  & 1 & 166 & 8.02 & - & 1050 & TO & 6\\
+%  & 2 &- & - & - & - & TO & 1\\
+
+% & 3 &- & - & - & - & TO & 1\\
+% & 4 &- & - & - & - & TO & 1\\
+
+% \midrule
+
+% \multirow{4}{*}{500K}  & 1 & - & - & - & - & TO & -\\
+%  & 2 &- & - & - & - & TO & -\\
+
+% & 3 &- & - & - & - & TO & -\\
+% & 4 &- & - & - & - & TO & -\\
+% \bottomrule
+% \end{tabular}}
+% \caption{Results of the Charnes--Cooper Transformation.}
+% \end{table}
+
+
+Table~\eqref{tab:PNresults} summarizes the results.
+ \begin{table}[H]
+\scriptsize \centering
+\resizebox{\textwidth}{!}{\begin{tabular}{ c  c l  r  r  r  r  r } 
+ \toprule
+ Sample & $b$ &  Clique  &\#Exp & $\mu$ &  Gap (\%) & Time (s) & \#BCN\\ 
+\midrule
+ \multirow{4}{*}{1K} & 1 & 29   & 3 & 3/15 & 0 & 14 & 1\\
+ & 2 & 200, 230 & 4 & 4/10 & 0 & 71 & \numprint{63}\\
+& 3 & 25, 65, 68  & 5 & 5/10 & 0 & 49 & \numprint{8}\\
+ &4 & 25, 65, 68  & 5 & 5/10 & 0 & 48 & \numprint{10}\\
+
+\midrule
+
+\multirow{4}{*}{5K}   & 1 & 252  & 13 & 13/17 & 0 & 807 & 0\\
+ & 2 & 169, 252 & 8 & 8/10 &  0 & \numprint{4420} & \numprint{614}\\
+& 3 & 24, 25, 65 & 9 & 9/11 & 0 & \numprint{3240} & \numprint{1420}\\
+& 4 & 24, 93, 169, 235 & 9 & 9/11 & 0 & \numprint{3889} & \numprint{1721}\\
+
+\midrule
+
+\multirow{4}{*}{50K}  & 1 & - & - & - & - & TO & 0\\
+ & 2 &- & - & - & - & TO & 1\\
+
+& 3 &- & - & - & - & TO & 1\\
+& 4 &- & - & - & - & TO & 0\\
+
+\midrule
+
+\multirow{4}{*}{500K}  & 1 & - & - & - & - & TO & -\\
+ & 2 &- & - & - & - & TO & -\\
+
+& 3 &- & - & - & - & TO & -\\
+& 4 &- & - & - & - & TO & -\\
+\bottomrule
+\end{tabular}}
+\caption{Results of the Newton's method.}
+\label{tab:PNresults}
+\end{table}
+
+The corresponding results for this approach are reported in table~\eqref{tab:PHDresults}.
+ \begin{table}[!ht]
+\scriptsize \centering
+\resizebox{\textwidth}{!}{\begin{tabular}{ c  c l  r  r  r  r  r } 
+ \toprule
+ Sample & $b$ &  Clique  &\#Exp & $\mu$ &  Gap (\%) & Time (s) & \#BCN\\ 
+\midrule
+ \multirow{4}{*}{1K} & 1 & 247   & 2 & 2/10 & 0 & 4 & 0\\
+ & 2 & 200, 230 & 4 & 4/10 & 0 & 21 & \numprint{43}\\
+& 3 & 25, 65, 68  & 5 & 5/10 & 0 & 38 & \numprint{1}\\
+ &4 & 25, 65, 68  & 5 & 5/10 & 0 & 39 & \numprint{1}\\
+
+\midrule
+
+ \multirow{4}{*}{5K} & 1 & 252   & 13 & 13/17 & 0 & 86 & 1\\
+ & 2 & 169, 252 & 8 & 8/10 & 0 & 447 & \numprint{135}\\
+& 3 & 169, 252 & 8 & 8/10 & 0 & 512 & \numprint{1344}\\
+ &4 & 24, 25, 235 & 8 & 8/10 & 0 & 621 & \numprint{3423}\\
+
+\midrule
+
+\multirow{4}{*}{50K}  & 1 & 202 & 5 & 5/16 & - & 847 & 1\\
+ & 2 &- & - & - & - & TO & 1\\
+
+& 3 & 21, 24, 251 & 10 & 10/10 & - & \numprint{10796} & 1\\
+& 4 & 24, 43, 102, 246 & 10 & 10/10 & - & \numprint{1328} & 1\\
+
+\midrule
+
+\multirow{4}{*}{500K}  & 1 & - & - & - & - & TO & -\\
+ & 2 &- & - & - & - & TO & -\\
+
+& 3 &- & - & - & - & TO & -\\
+& 4 &- & - & - & - & TO & -\\
+\bottomrule
+\end{tabular}}
+\caption{Results of the Newton's method by combining doubling and halving strategies.}
+\label{tab:PHDresults}
+\end{table}

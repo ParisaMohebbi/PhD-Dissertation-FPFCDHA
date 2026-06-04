@@ -1,0 +1,98 @@
+\begingroup
+\clearpage
+\let\clearpage\relax
+\vspace*{-16pt}
+\chapter[PROBLEM STATEMENT]{PROBLEM STATEMENT}\label{sec.probstmnt}
+\endgroup
+
+\comm{BB is here.}
+
+This chapter formalizes the optimization problem studied in this
+dissertation and establishes the notation used throughout. EHR data
+are assumed to supply all inputs needed for the optimization model.
+Let $P$ be the set of patients in the EHR dataset, and let
+$\widetilde{P} \subseteq P$ be the subset of patients recorded as
+expired. The set of diseases (or disease categories) $V$ consists of
+standardized codes drawn from the International Classification of
+Diseases (ICD)~\citep{cdc_icd9cm_2013, cdc_icd10cm_2022}. For each
+disease $u \in V$, let $A_u \subseteq P$ be the set of patients
+diagnosed with $u$, and for each patient $i \in P$, let
+$D_i \subseteq V$ be the set of diseases with which patient $i$ has
+been diagnosed. Without loss of generality, we assume that $A_u$ and
+$D_i$ are nonempty for all $u \in V$ and $i \in P$.
+
+From the same EHR dataset, we construct a \textit{comorbidity graph}
+whose vertices are diseases and whose edges capture pairwise
+co-occurrence among diseases in the patient population $P$. Following
+prior work on comorbidity
+graphs~\citep{KALGOTRA2020,VaghfiMohebbi2025lethalclique}, we use the
+Ochiai coefficient (akin to cosine similarity for binary vectors) to
+quantify co-occurrence as
+\begin{equation}
+    \label{eq.SCI}
+    \sigma(u,v) = \frac{|A_u \cap A_v|}{\sqrt{|A_u| \times |A_v|}},
+\end{equation}
+which normalizes the co-occurrence of a pair of diseases by the
+geometric mean of their individual occurrences in
+$P$~\citep{ochiai1957zoogeographic,Salton}. For a
+user-specified threshold $\Delta \in [0,1]$, the edge set of the
+comorbidity graph $G=(V,E)$ is
+\begin{equation}
+    E \coloneqq \left\{ \{u,v\} \in \binom{V}{2} :
+        \sigma(u,v) \ge \Delta \right\},
+\end{equation}
+where $\binom{V}{2}$ denotes the set of all two-element subsets of
+$V$. A clique is a subset of pairwise adjacent vertices; in our
+setting, cliques model tightly knit groups of diseases that co-occur
+frequently across the patient population.
+
+\begin{definition}\label{def.MR}
+Given a clique of diseases $C \subseteq V$, its \textit{mortality
+rate} $\mu(C)$ is defined as
+\begin{equation}
+    \label{eq.MR}
+    \mu(C) \coloneqq \frac{\left|\num(C)\right|}{\left|\den(C)\right|},
+\end{equation}
+where $\den(C) \coloneqq \bigcap_{u \in C} A_u$ and
+$\num(C) \coloneqq \den(C) \cap \widetilde{P}$.
+\end{definition}
+
+The denominator $|\den(C)|$ counts the patients in $P$ diagnosed with
+every disease in $C$, and the numerator $|\num(C)|$ counts those
+patients who have expired. We set $\mu(C) = 0$ whenever $C$ or
+$\den(C)$ is empty.
+
+\begin{definition}\label{def.lfreq}
+For a positive integer $\ell$, a clique $C$ is
+\textit{$\ell$-frequent} if $|\den(C)| \ge \ell$, and
+\textit{non-$\ell$-frequent} otherwise. A non-$\ell$-frequent clique
+$C$ is called \textit{minimal} if $|\den(C)| \le \ell - 1$ and
+$|\den(C \setminus \{u\})| \ge \ell$ for every $u \in C$.
+\end{definition}
+
+The \textit{maximum mortality rate clique problem} (MMRCP) seeks
+\begin{equation}
+    \max\bigl\{\mu(C) : C \text{ is a nonempty $\ell$-frequent
+        clique in } G\bigr\}.
+    \label{eq.MMRCP}
+\end{equation}
+
+The precise meaning of being recorded as expired depends on how the EHR dataset defines $\widetilde{P}$. For instance, a patient may be considered
+expired if they died or were discharged to hospice care within a given
+time window after their last clinical encounter.
+
+Throughout this dissertation, we apply a simple preprocessing step to
+reduce the size of the comorbidity graph before solving MMRCP. Since
+only $\ell$-frequent cliques are of interest, any vertex $u$ with
+$|A_u| \le \ell - 1$ can be removed from $G$, as it cannot belong to
+any $\ell$-frequent clique. Likewise, any edge $\{u,v\}$ with
+$|A_u \cap A_v| \le \ell - 1$ can be removed, since no clique
+containing both $u$ and $v$ can be $\ell$-frequent.
+
+The monotonicity properties of MMRCP and its computational complexity
+are discussed in Chapter~\ref{sec.theory}.
+
+
+
+
+

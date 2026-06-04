@@ -1,0 +1,528 @@
+\begingroup
+\clearpage% Manually insert \clearpage
+\let\clearpage\relax% Remove \clearpage functionality
+\vspace*{-16pt}% Insert needed vertical retraction
+\chapter[PRELIMINARY RESULTS]{PRELIMINARY RESULTS}\label{sec.results}
+\endgroup
+
+We provide a concise overview of our progress towards completing RO-\ref{it.RO1}. We show our results of solving model~\eqref{form.milp} monotonically and our modified algorithm for solving the massive data set of 10.6 million patients. These results have been submitted as a paper titled \textit{``Identifying Most Lethal Cliques in Disease Comorbidity Graphs''} to the \textit{IISE Transactions on Healthcare Systems Engineering}. The paper is currently under review.
+    
+The original Bron--Kerbosch (BK) algorithm is a recursive algorithm that operates with three sets: a current clique $C$, set $L$ containing every candidate vertex  that may be added to enlarge clique $C$, and  set $S$ containing vertices that are adjacent to all vertices in $C$ but excluded as candidates for addition, in order to avoid outputting the same maximal clique multiple times during the recursive calls. The algorithm selects a vertex from $L$ and moves it to $C$. After updating $L$ and $S$ by removing the non-neighbors of the recently added vertex $v$, the recursive function is called with the new $C, L,$ and $S$. When $L$ and $S$ are empty, the current clique is returned as it is a  previously unreported maximal clique. Then, the algorithm backtracks to the most recent recursive call and the candidate vertex that was added is removed from the set of candidates $L$ and added to $S$ to help track for duplicates.
+\begin{algorithm}[!htbp]
+\small
+    \KwIn{$\langle P, \widetilde{P}, A, G=(V,E), \ell, b\rangle$ and initial clique $C^0$ (possibly empty) such that $|C^0| < b$} 
+    \KwOut{$K$ highest marginal mortality rate cliques with respect to $C^0$}
+    $Q \gets \emptyset$ 
+    \CommentSty{\hfill \small Global max-heap of cliques with mortality rate as priority}\\
+    Insert $C^0$ in $Q$ with priority $\mu(C^0)$\\
+    $C \gets C^0$, $L \gets V \cap \bigcap\limits_{u \in C^0}N(u)$, and $den \gets P\cap   \bigcap\limits_{u \in C^0} A_u$\\
+    \SetKwFunction{FBronKerbosch}{Bron--Kerbosch}
+    \FBronKerbosch{$C,L,den$}\\
+    \KwRet{}  Top-$K$ cliques from $Q$\\
+
+    \SetKwProg{Fn}{Function}{}{}
+    \Fn{\FBronKerbosch{$C,L,den$}}{
+     \If{$|C|=b$ \text{or} $L = \emptyset$   \label{step.terminate} } {\KwRet}
+        \For{$v \in L$ \label{step.outer-for}}{
+            $newden \gets den \cap A_v$\\
+            \If{$|newden| \ge \ell$}{
+                $\mu \gets \frac{|\widetilde{P} \cap newden|}{|newden|}$\\
+                $C \gets C \cup \{v\}$\\
+                \If{$C \notin Q$}{
+                Insert $C$ in $Q$ with priority $\mu$\\
+                }
+                \FBronKerbosch{$C, L\cap N(v),  newden$}\\
+            }
+            $L \gets L \setminus \{v\}$\\
+        }
+        \KwRet %$Q$
+    }
+\caption{Enumerating top-$K$ highest marginal mortality rate cliques}
+\label{alg.BKMMRC}
+\end{algorithm}
+Algorithm~\ref{alg.BKMMRC} is a variant of the BK algorithm that disregards maximality and instead includes pruning steps based on the following feasibility conditions: \textit{(i)}~restricting the enumeration to cliques of size at most $b$, and \textit{(ii)}~eliminating  cliques associated with insufficient patients by enforcing that $\left|\bigcap\limits_{u \in C} A_u\right| \ge \ell$. In Algorithm~\ref{alg.BKMMRC}, we use $N(v) \coloneqq \{u : \{u,v\} \in E\}$ to denote the neighbors of vertex $v$ in $G$.  
+
+A global max-heap $Q$, prioritized by mortality rate, is used to store the enumerated cliques and $C^0$ is inserted in $Q$ initially. The disjoint sets $C$ and $L$ along with the set $den$, which represents the set $\bigcap\limits_{u \in C} A_u$ from the denominator of the mortality rate function are initialized next. Due to the recursive nature of the algorithm, it is more efficient to track and incrementally update $den$, rather than recompute it  each time. The current clique $C$ is initialized to $C^0$, the candidate set $L$ is initialized to the common neighbors of all the vertices in $C^0$ (or the entire vertex set if $C^0$ is empty), and $den$ is initialized to the set of patients that have all diseases in $C^0$ (or the entire patient set if $C^0$ is empty). 
+
+The core of our algorithm is a recursion that is similar to the original algorithm in terms of enumerating cliques. However, as the mortality rate function is not monotonic, we must consider \textit{all cliques}, not just maximal cliques. Consequently, the set $S$ which is used in the original algorithm to avoid reporting the same maximal clique multiple times is not used in Algorithm~\ref{alg.BKMMRC}. Our algorithm terminates the recursion if one of the following conditions is met in Step~\ref{step.terminate} of Algorithm~\ref{alg.BKMMRC}: \textit{(i)}~when  $L$ is empty, which means that the current clique is maximal; or \textit{(ii)}~the size of current clique is $b$. As a clique is enlarged with the addition of a vertex $v$ in a recursive call, the set $den$ is updated, lower bound condition checked and if met, mortality rate is calculated. The new clique is inserted in $Q$ with its mortality rate as priority  if it is not already in the max-heap. Then a deeper recursive call is made with the updated sets. If candidate vertex $v \in L$ cannot be included due to the lower-bound $\ell$ not being satisfied, or if we added vertex $v$ and completed that recursive call,  vertex $v$ is removed from the set $L$. After the recursive calls are exhausted, the max-heap $Q$ contains all feasible cliques encountered, with their associated mortality rate as heap priority. We can now extract the clique with the highest marginal mortality rate and solve problem~\eqref{eq.MMRPclq}. More importantly, we can now return for any positive integer $K$, the cliques with the $K$ highest mortality rates. 
+
+In our preliminary experiments, solving formulation~\eqref{form.milp} directly using the Gurobi solver was only viable up to \numprint{5000} patient dataset.  For larger instances, the solver terminated by reaching the three-hour time limit. Consequently, we employed a decomposition branch-and-cut (DBC) approach with delayed generation of constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB}, which grow linearly with $|P|$, the number of patients in the dataset. In our preliminary experiments, we also considered delayed generation of constraints~\eqref{eq.xyconnectupperagg}--\eqref{eq.xyconnectlower} in combination with delayed generation of constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB}, and by themselves, as this group of constraints also grows linearly with $|P|$. However, delayed generation of constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB} produced the best overall performance for the MILP approach in our preliminary experiments.  The delayed addition of constraints was implemented in Gurobi using the ``lazy cut'' functionality. Whenever an integral solution to the linear programming (LP) relaxation is encountered at a branch-and-cut (BC) node, all violated constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB} are added to the node as lazy cuts. Gurobi re-solves the LP relaxation and manages the tree node subsequently. At the root node, we begin with a relaxation that does not include any of the constraints~\eqref{eq.wto0}--\eqref{eq.wtozUB}. 
+
+ \begin{table}[!ht]
+\scriptsize \centering
+\resizebox{\textwidth}{!}{\begin{tabular}{ c  c l  r  r  r  r  r } 
+ \toprule
+ Sample & $b$ &  Clique  &\#Exp & $\mu$ &  Gap (\%) & Time (s) & \#BCN\\ 
+\midrule
+ \multirow{4}{*}{1K} & 1 & Second. malign.   &3 & 0.20 & 0 & 2 & 130\\
+ & 2 & Disord. of stomach, External cause & 4 & 0.40 & 0 & 12 & \numprint{12105}\\
+& 3 & Circ. disease, Calc. of urin. tract, Cardiac dysrhyt.  & 5 & 0.50 & 0 & 18 & \numprint{9334}\\
+ &4& Urin. tract infect., Pleurisy, Nutr. defi., Anemia &  5 & 0.50 & 0 & 392 & \numprint{4194202}\\
+
+\midrule
+
+\multirow{4}{*}{5K}   & 1 & Cardiac arrest  & 16 & 0.72 & 0 & 15 & 99\\
+ & 2 & Cardiac arrest, Resp. distr. synd. & 11 & 0.91 &  0 & 378 & \numprint{26447}\\
+& 3 & Cardiac arrest, Aftercare, Fluid disord. & 11 & 1.00 & 0 & \numprint{204} & \numprint{193481}\\
+& 4 & Cardiac arrest, Unclass., Resp. fail., Resp. distr. synd. & 9 & 0.90 & 11 & TO & \numprint{9012838}\\
+
+\midrule
+
+\multirow{4}{*}{50K}  & 1 & Cardiac arrest  & 131 & 0.69 & 0 & 209 & 52\\
+ & 2 & Cardiac arrest, Phlebitis & 16 & 0.80 & 14 & TO & \numprint{22839}\\
+
+& 3 & Cardiac arrest, Liver dis., Epilepsy & 10 & 1.00 & 0 & \numprint{1355} & \numprint{6773}\\
+& 4 & Cardiac arrest, Brain damage, Resp. fail., Epilepsy & 10 & 1.00 & 0 & \numprint{5146} & \numprint{135226}\\
+
+\midrule
+
+\multirow{4}{*}{500K}  & 1 & Coag. disord.   & 847 & 0.09 & 937 & TO & \numprint{7}\\
+ & 2 & Unclass., Allergic reactions & 530 & 0.02 & \numprint{3236} & TO & \numprint{46}\\
+
+& 3 & Chronic obst. pulmon. disease, Nutr. defi., Mycoses  & 121 & 0.23 & 328 & TO & \numprint{94}\\
+& 4 & Neoplasms, Mental health, Respiratory dis., Mycoses & 12 & 0.36 & \numprint{175} & TO & \numprint{124}\\
+\bottomrule
+\end{tabular}}
+ \caption{Results of the DBC  Algorithm.}
+ \label{tab:mipresults}
+\end{table}
+ The results of solving formulation~\eqref{form.milp} using the DBC algorithm are documented in Table~\ref{tab:mipresults}. The columns labeled ``Sample'' and  ``$b$'' identify the test instance used and clique size upper-bound, respectively. Under the column labeled ``Clique'' we report the diseases corresponding to the best solution found. The column ``\#Exp'' reports the numerator of the mortality rate objective function and column ``$\mu$'' reports the mortality rate corresponding to the clique found. Recall that the denominator of every feasible clique should be at least size $\ell$, and we used a loose requirement of $\ell=10$ in this experiment.  The column labeled ``Gap (\%)'' reports the MILP termination gap, and it is zero whenever the solver finds an optimal solution. Under the column labeled ``Time (s)'' we report the wall-clock running time in seconds, rounded down to the nearest integer, for building the MILP relaxation used at the root node and solving it using the DBC algorithm. We also report the number of BC nodes enumerated under the column labeled ``\#BCN''. It is apparent from the results that despite using delayed   constraint generation technique, the MILP based approach is unable to solve any of the  instances with sample size \numprint{500000} to optimality (the entry ``TO'' denotes that the solver timed out).
+
+\begin{table}[!ht]
+\scriptsize \centering \resizebox{\textwidth}{!}
+    {\begin{tabular}{cclrrrr}
+     \toprule
+         Sample & $b$ & Clique & \#Exp& $\mu$ & Time (s)& \#RC\\ 
+         \midrule 
+         \multirow{4}{*}{1K}& \multirow{1}{*}{1} & Cardiac arrest & 2& 0.20 & $<1$ & 104 \\
+    &2& Cardiac arrest, Resp. distr. synd. & 4&0.40 & $<1$ & \numprint{1716} \\
+    &3& Calc. of urin. tract, Cardiac dysrhyt., Circ. disease & 5&0.50 & 2 & \numprint{59275} \\
+    &4& Pleurisy, Circ. disease, Septicemia, Cardiac dysrhyt. & 5&0.50 & 8 & \numprint{431628} \\
+   \midrule 
+
+     \multirow{4}{*}{5K}&\multirow{1}{*}{1} & Cardiac arrest &16 &0.72 & 1 & 191 \\
+     &2& Cardiac arrest, Resp. distr. synd. & 11&0.91 & 1 & \numprint{8512} \\
+     &3& Cardiac arrest, Aftercare, Fluid disord. & 11&1.00 & 5 & \numprint{181687} \\
+     &4& Cardiac arrest, Aftercare, Fluid disord. & 11& 1.00 & 69 & \numprint{2028086} \\
+     \midrule
+
+  \multirow{4}{*}{50K}&\multirow{1}{*}{1} & Cardiac arrest &131 &0.69 & 2 & 250 \\
+  & 2& Cardiac arrest, Phlebitis & 16&0.80 & 4 & \numprint{11200} \\
+  &3& Cardiac arrest, Epilepsy, Pneumonia  &11 &1.00 & 12 & \numprint{320953} \\
+  &4& Cardiac arrest, Epilepsy, Pneumonia, Unclassified & 10&1.00 & 106 & \numprint{5377267} \\
+   \midrule 
+
+    \multirow{4}{*}{500K}&\multirow{1}{*}{1} & Cardiac arrest &1243 &0.71 & 4 & 278 \\
+    & 2& Cardiac arrest, Coma &250 &0.75 & 10 & \numprint{11557} \\
+    &3& Shock, Second. malign., Dis. of kidney &25 &0.86 & 62 & \numprint{345684} \\
+        &4& Phlebitis, Shock, Second. malign., Dis. of stomach  & 13&1.00 & 511 & \numprint{7697001} \\
+    \bottomrule
+    \end{tabular}}
+        \caption{Results of the Modified Bron--Kerbosch Algorithm.}
+            \label{tab:allsamplesBK}
+\end{table}
+By contrast, the modified BK Algorithm~\ref{alg.BKMMRC} is significantly faster on the same test bed and solves all instances to optimality as reported in Table~\ref{tab:allsamplesBK}. We still set the denominator lower bound $\ell = 10$ and  parameter $K$ to a value of 100. The wall-clock running time  reported here includes the time to complete all the recursive calls and the time to report the top-100 highest mortality rate cliques. The column labeled ``\#RC'' reports the number of recursive calls made by the algorithm. Although top-100 highest mortality rate cliques were found, for comparison purposes, we only report the maximum mortality rate clique found in Table~\ref{tab:allsamplesBK}.
+
+From the foregoing experiments it is clear that due to the large number of patients in the data set and the small size of cliques we seek (from a graph with a few hundred vertices), the enumerative approach is dominant in its performance from a computational perspective. Furthermore, this approach also finds the top-$K$ most lethal cliques. Consequently, for our subsequent experiments and studies, we concentrate solely on the modified BK algorithm.
+
+Our primary goal is to assess the performance of the modified BK algorithm on  the full dataset consisting of 10.6 million distinct patient records, as it represents the scale at which we may be interested in solving our problems of interest. Table~\ref{tab:10mXBK} presents the results for this complete dataset. For experiments in this section, we set $\ell=100$ and $K = 5$. 
+\begin{table}[!ht]
+ \scriptsize \centering \resizebox{\textwidth}{!}
+    {\begin{tabular}{clrrrr}
+     \toprule
+          $b$ & Clique &  \#Exp & $\mu$  & Time (s) & \#RC\\ 
+          \midrule
+         \multirow{5}{*}{1} & Cardiac arrest & \numprint{29450}&0.66 &  \multirow{5}{*}{28} & \multirow{5}{*}{286} \\
+          &Shock & \numprint{23422}&0.41  & & \\
+          &Asp. pneum. & \numprint{9677}&0.26  & & \\
+          &Resp. fail. & \numprint{49599}&0.25  & & \\
+          &Malig. neopl. &\numprint{7583} &0.24  & & \\
+         % \cline{2-8}
+\midrule
+
+     \multirow{5}{*}{2} & Cardiac arrest, Coma &\numprint{6765} &0.73 &  \multirow{5}{*}{217} & \multirow{5}{*}{\numprint{11619}} \\
+          &Cardiac arrest, Septicemia &\numprint{7172} &0.71  & & \\
+          &Cardiac arrest, Shock & \numprint{7176}&0.71  & & \\
+          &Cardiac arrest, Chron. ulcer & \numprint{2925}&0.68  & & \\
+          &Cardiac arrest, Resp. distr. synd. &\numprint{14446} &0.68  & & \\
+         % \cline{2-8}
+\midrule
+     \multirow{5}{*}{3} & Cardiac arrest, Coma, Shock & \numprint{90}&0.76 &  \multirow{5}{*}{\numprint{1903}} & \multirow{5}{*}{\numprint{346017}} \\
+          &Cardiac arrest, Coma, Renal failure &\numprint{156} &0.75  & & \\
+          &Cardiac arrest, Coma, Aftercare & \numprint{3991}&0.74  & & \\
+          &Cardiac arrest, Coma, Per. atheros. &\numprint{993} &0.74  & & \\
+         & Cardiac arrest, Shock, Septicemia &\numprint{4388}& 0.74  & & \\
+           % \cline{2-8}
+\midrule
+     \multirow{5}{*}{4} & Cardiac arrest, Coma, Shock, Renal failure & \numprint{1994}& 0.77 & \multirow{5}{*}{\numprint{13229}} & \multirow{5}{*}{\numprint{7721551}} \\
+         & Cardiac arrest, Coma, Shock, Aftercare &\numprint{1894}&0.77  & & \\
+         & Cardiac arrest, Coma, Shock, Epilepsy &\numprint{798}& 0.77  & & \\
+         & Cardiac arrest, Coma, Shock, Diab. mell. w complications & \numprint{863}&0.77  & & \\
+         & Cardiac arrest, Coma, Shock, Fluid disord. & \numprint{2469}&0.76  & & \\
+         \bottomrule
+    \end{tabular}}
+        \caption{Top-5 Most Lethal Cliques in  the 10.6 Million Patient Dataset Found By the Modified BK Algorithm.}
+            \label{tab:10mXBK}
+\end{table}
+ As evident from Table~\ref{tab:10mXBK}, the modified BK algorithm is effective on this large dataset for all practically meaningful values of parameter $b$. As far as the results themselves are concerned, the mortality rate associated with cardiac arrest, either by itself or in combination with other diseases stands out as the highest among all cliques of size at most 4. As expected the maximum mortality rate increases as the upper bound $b$ on clique size increases from 1 to 4. Cardiac arrest by itself has a mortality rate of 0.66, but when paired with coma, septicemia, shock, chronic ulcer, and respiratory distress syndrome, it corresponds to the five highest mortality rate cliques with $\mu$ ranging from 0.68 to 0.73. The mortality rates associated with cardiac arrest increase as expected for $b \in \{3,4\}$.
+ 
+The results in Table~\ref{tab:10mXBK} have not revealed new insights of medical significance, as the  diseases featured in the five highest mortality rate cliques for each value of parameter $b$ are well-known within the medical community to be the most lethal comorbidities. However, the results do provide a verification of clinical insights through an analysis of large-scale EHR data. Furthermore, the fact that the proposed approach is  not detecting spurious comorbidities among its top-$K$ cliques is encouraging, as the detection of spurious clusters is a common concern in any graph-based data mining approach. The procedure followed in preparing  the dataset and the design of the modified BK algorithm seem to be offering a practically effective and useful framework for mortality rate analysis of comorbidities. 
+\begin{table}[!ht]
+    \scriptsize \centering \resizebox{\textwidth}{!}
+    {\begin{tabular}{clrrrr}
+          \toprule
+         $b$ & Clique &  \#Exp & $\mu$ &  Time (s)& \#RC\\[0.5ex]
+          \midrule
+         \multirow{5}{*}{1} &  Secondary malignancies
+ & \numprint{24211}&0.24 &  \multirow{5}{*}{15} & \multirow{5}{*}{281} \\
+          & Cancer of liver
+ & \numprint{3189}&0.21 &  & \\
+          & Cancer of pancreas
+ & \numprint{2376}&0.20 &  & \\
+          & Intrauterine hypoxia
+ & \numprint{125}&0.20 &  & \\
+          & Cancer of lung
+ & \numprint{11565}&0.19 &  & \\
+         % \cline{2-8}
+\midrule
+     \multirow{5}{*}{2} &  Septicemia, Secondary malignancies
+ & \numprint{7380}&0.52 &  \multirow{5}{*}{206} & \multirow{5}{*}{\numprint{10959}} \\
+          & Septicemia, Cancer of lung
+ & \numprint{3144}&0.48 &  & \\
+          & Coma, Myocard. infarc.
+ & \numprint{2695}&0.47 &  & \\
+          & Secondary malignancies, Pneumonia
+ & \numprint{7866}&0.46 &  & \\
+          & Secondary malignancies, Renal failure
+ & \numprint{7734}&0.45  & & \\
+         % \cline{2-8}
+\midrule
+     \multirow{5}{*}{3} &  Cancer of lung, Septicemia, Secondary malignancies
+ & \numprint{2249}&0.58 &  \multirow{5}{*}{\numprint{1605}} & \multirow{5}{*}{\numprint{329843}} \\
+          & Coag. disord., Secondary malignancies, Septicemia
+ & \numprint{2825}&0.58 & &  \\
+          & Secondary malignancies, Renal failure, Septicemia
+& \numprint{3864}&0.57 & &  \\
+          &  Pneumonia, Secondary malignancies, Septicemia
+& \numprint{3663}&0.57 & &  \\
+         &  Nutritional deficiencies, Secondary malignancies, Septicemia
+ &\numprint{3666}& 0.57 & &  \\
+           % \cline{2-8}
+\midrule
+      \multirow{5}{*}{4} & Septicemia, Renal failure, Cancer of lung, Second. malign.
+ & \numprint{991}& 0.63 &  \multirow{5}{*}{\numprint{10445}} & \multirow{5}{*}{\numprint{7291810}} \\
+         &  Septicemia, Coag. disord., Gastrointestinal  hemor., Second. malign.
+ & \numprint{745}&0.63 & &  \\
+         & Septicemia, Coag. disord., Cancer of lung, Second. malign.
+ &\numprint{796}& 0.62 & & \\
+         &   Septicemia, Cancer of lung, Pulmonary heart dis., Second. malign.
+ & \numprint{483}&0.62 &  & \\
+         &  Septicemia, Coag. disord., Pneumonia, Second. malign.
+ & \numprint{1461}&0.61 &  & \\
+         \bottomrule
+    \end{tabular}}
+        \caption{Top-5 Most Lethal Cliques in the 10.2 Million Patient Dataset Found by the Modified BK Algorithm.}
+            \label{tab:10mXBKdeletion}
+\end{table}
+
+In order to explore the dataset further, we exclude from the 10.6 million patient dataset, every patient that has cardiac arrest, shock, aspiration pneumonitis, respiratory failure, or malignant neoplasm,  which may be evident to physicians as causing lethal comorbidities. The resulting dataset corresponding to 10.2 million patients is analyzed using the modified BK algorithm and the results are reported in  Table~\ref{tab:10mXBKdeletion}.
+
+From the results  in Table~\ref{tab:10mXBKdeletion}, the individual mortality rate linked to secondary malignancies is the highest among all the (remaining) diseases, although it is much lower at 0.24. Notably, when paired with septicemia it corresponds to the highest mortality rate of 0.52, more than doubling mortality rate of secondary malignancies and more than the sum of the individual mortality rates. These two diseases continue to remain among the top-two highest mortality rate cliques when we increase $b$ to three and then to four, with the respective rates increasing to 0.58  and then to 0.63. 
+
+This perspective into the mortality rates from the EHR dataset after excluding the  diseases well known to dominate mortalities provides an insight into how the proposed framework may be used to better understand lesser known comorbidities.  The findings presented in Tables~\ref{tab:10mXBK} and~\ref{tab:10mXBKdeletion} demonstrate that the modified BK algorithm is capable of tackling large-scale datasets within a reasonably short span of less than three hours. These results offer compelling evidence that our proposed methodology seamlessly integrates with real-world datasets, underscoring its robustness and effectiveness in practical healthcare analytics settings.
+
+Our final experiment is to evaluate the modified BK algorithm when it is tasked to find maximum marginal mortality rate cliques. For this experiment, we consider the 10.2 million patient dataset described in the previous section that excludes every patient with any of the following diseases: cardiac arrest, shock, aspiration pneumonitis, respiratory failure, and malignant neoplasm. From Table~\ref{tab:10mXBKdeletion}, for each value of $b$, we fix the fifth highest mortality rate clique as $C^0$ and find the top-3 highest marginal mortality rate cliques when allowing the addition of one or two more diseases to $C^0$. We choose $C^0$ in this manner as the results in Tables~\ref{tab:10mXBK} and~\ref{tab:10mXBKdeletion} already demonstrate a sequence of containment relationships among the cliques as $b$ is increased. With the proposed design, we aim to identify high marginal mortality cliques not readily apparent from the results  in Table~\ref{tab:10mXBKdeletion}. 
+
+As before, the modified BK algorithm is effective on the large-scale dataset we have considered, and it is extremely fast when  an initial clique of diseases $C^0$ is fixed. We can also see from the results in Tables~\ref{tab:margMRplus1t4} and~\ref{tab:margMRplus2t4} that this experiment offers information complementary to that reported in Table~\ref{tab:10mXBKdeletion}. Through this experiment we can recognize the disease(s) to be most wary of when a patient subgroup is already diagnosed with an existing clique of diseases, which is the main purpose behind investigating marginal mortality rates, to identify lethal comorbidities that are specific to the patient population under consideration.
+\begin{table}[!ht]
+ \centering 
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lclcrrr}
+\toprule
+\textbf{$C^0$} & \multicolumn{1}{c}{\textbf{$\mu(C^0)$}} & \textbf{Additional Disease $u$} & \textbf{$\mu(C^0 \cup \{u\})$} & \textbf{\%increase} & \textbf{Time (s)} & \textbf{\#RC} \\
+\midrule
+\multirow{3}{*}{Cancer of lung} & 0.19 & Septicemia & 0.48 & 152\% & \multirow{3}{*}{2} & \multirow{3}{*}{48} \\
+ & 0.19 & Renal failure & 0.40 & 110\% &  &  \\
+ & 0.19 & Pneumonia & 0.38 & 100\% &  &  \\
+ \midrule
+\multirow{3}{*}{\shortstack[l]{Secondary   malignancies\\ Renal failure}} & 0.45 & Septicemia & 0.57 & 26\% & \multirow{3}{*}{2} & \multirow{3}{*}{75} \\
+ & 0.45 & Pneumonia & 0.55 & 22\% &  &  \\
+ & 0.45 & Cancer of liver & 0.54 & 20\% &  &  \\
+ \midrule
+\multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Nutritional deficiencies}} & 0.57 & Cancer of lung & 0.60 & 5\% & \multirow{3}{*}{2} & \multirow{3}{*}{70} \\
+ & 0.57 & Coag. disord. & 0.60 & 5\% &  &  \\
+ & 0.57 & Pneumonia & 0.60 & 5\% &  &  \\
+ \midrule
+\multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Pneumonia\\ Coag. disorder.}} & 0.61 & Gastrointestinal  hemor. & 0.65 & 6\% & \multirow{3}{*}{2} & \multirow{3}{*}{69} \\
+ & 0.61 & Intest. obstruc. w hernia & 0.64 & 4\% &  &  \\
+ & 0.61 & Renal failure & 0.64 & 4\% &  & \\[3pt]
+ \bottomrule
+\end{tabular}%
+}
+\caption{Top-3 Most Lethal Cliques Formed by the Addition of a Single Disease}
+\end{table}
+
+\begin{table}[!ht]
+% $C^0$ Obtained from Table~\eqref{tab:10mXBKdeletion}
+\label{tab:margMRplus2t4}
+  \centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lclcrrr}
+\toprule
+\textbf{$C^0$} & \multicolumn{1}{c}{\textbf{$\mu(C^0)$}} & \textbf{Additional Diseases $u,v$} & \textbf{$\mu(C^0 \cup \{u,v\})$} & \textbf{\%increase} & \textbf{Time (s)} & \textbf{\#RC} \\
+\midrule
+\multirow{3}{*}{{Cancer   of lung}} & {0.19} & {Secondary   malignancies, Septicemia} & {0.58} & {205\%} & \multirow{3}{*}{{3}} & \multirow{3}{*}{{959}} \\
+ & 0.19 & Coag. disord., Septicemia & 0.55 & 189\% &  &  \\
+ & 0.19 & Nutritional deficiencies, Septicemia & 0.53 & 178\% &  &  \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Secondary   malignancies\\ Renal failure}} & 0.45 & Cancer of lung, Septicemia & 0.63 & 40\% & \multirow{3}{*}{3} & \multirow{3}{*}{2454} \\
+ & 0.45 & Coag. disord., Septicemia & 0.61 & 35\% &  &  \\
+ & 0.45 & Pneumonia, Septicemia & 0.61 & 35\% &  &  \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Nutritional deficiencies}} & 0.57 & Gastrointestinal  hemorr., Coag. disord. & 0.65 & 14\% & \multirow{3}{*}{3} & \multirow{3}{*}{2318} \\
+ & 0.57 & Renal failure, Cancer of lung & 0.64 & 12\% &  &  \\
+ & 0.57 & Liver disease, Renal failure & 0.63 & 10\% &  &  \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Septicemia\\   Secondary malignancies\\ Pneumonia\\ Coag. disorder.}} & 0.61 & Gastrointestinal  hemor., Bone disease & 0.69 & 13\% & \multirow{3}{*}{2} & \multirow{3}{*}{2220} \\
+ & 0.61 & Gastrointestinal  hemor., Phlebitis & 0.68 & 11\% &  &  \\
+ & 0.61 & Intest. obstruc. w hernia, E Code: medical drugs & 0.68 & 11\% &  &  \\[3pt]
+ \bottomrule
+\end{tabular}%
+}
+\caption{Top-3 Most Lethal Cliques Formed by the Addition of Two Diseases}
+\label{tab:margMRplus1t4}
+\end{table}
+
+% For RT 1-3, we have currently solved a version of this problem that identifies non-fault-tolerant $k$-clubs in the comorbidity graph $G$. Below, we present our algorithm along with its results.
+
+%     The main idea behind enumeration $k$-clubs algorithm~\eqref{alg.MRkclub} in graph $G$ stems from the fact that every $k$-club is a $k$-clique. Where a $k$-clique is a subgraph where the distance between any two vertices is not greater than $k$. However, not all $k$-cliques are $k$-clubs because suppose $C^{'}\subset V(G)$ is a $k$-clique in $G$, each pair of vertices is connected by a path of length at most $k$, but that path may use any vertices in $G$. On the other hand, if $C^{'}\subset V(G)$ is a $k$-club, each pair of vertices must be connected by a path of length at most $k$ using only vertices inside $C^{'}$. An adjustment of a maximum clique algorithm, such as Bron--Kerbosch algorithm~\citep{BronKerbosch73}, permits the straightforward identification of a maximum $k$-clique within a graph G by examining its $k$-th power graph. The power graph $G^k$ shares identical vertex sets with $G$ and contains edges connecting any two distinct vertices $p$ and $q$ only if there exists a path of length no more than $k$ between them in $G$. Hence, the maximum cliques in $G^k$ align with the maximum $k$-cliques in $G$. Thus, we first find $k$-cliques in graph $G$ and then filter $k$-clubs from them.
+
+% Algorithm~\eqref{alg.MRkclub} begins with receiving the set of all patients $P$, expired patients $X$, adjacency list of each disease $v$, $A_v$ that contains all patients suffering from disease $v$. Additionally, parameters $k$, $b$, and $S$ correspond to the diameter of $k$-club, the size of the $k$-club, and the size of the heap, respectively. We define a global priority queue~\citep{AhujaBook} with a mortality rate as priority to save top $S$ $k$-clubs in the graph $G$. Algorithm starts with the initialization of disjoint sets: $C$, $L$, $S$, and $den$. Set $C$ represents the current potential clique being explored. Set $L$ represents the set of vertices that can potentially be added to $C$. Set $S$ represents the set of vertices that have already been ruled out as potential additions to $C$. In order to incrementally compute the objective function from the parent node's information, we introduce set $den$. The denominator set $den$ initially contains all patients in our dataset. The modified BK employs a recursive approach at its core. Since the objective function ($\mu$) is not monotonic, we must consider all cliques in $G^k$. The algorithm terminates when the size of the size of the clique reaches $b$ ($|C|=b$) and it has the property of being a $k$-club (each pair of vertices in $C$ is connected by a path of length at most $k$ using only vertices inside $C$). The idea behind checking the $k$-clubness is based on doing a breadth-first-search (BFS) instead of making a subgraph $G[C]$ and calculating its diameter. For all vertices in $C$, we do BFS to check two properties. First, the longest path from a vertex $p$ in $C$ to all other vertices $q \in C$ ($p\neq q$) has the length at most $k$ using only available vertices in $C$. Second, $C$ is connected.
+
+% The recursive step of the algorithm involves choosing a pivot vertex $v$ from $L$. For each vertex $v$ in $L$ such that the number of patients who have the disease $v$ is at least $\ell$, the algorithm restricts its search to the set of neighbors of $v$, $N_{GP}(v)$ such that the extension of current clique gives us a $k$-club. If $C \cup \{v\}$ is a valid $k$-club in $G$, then algorithm calculates the mortality rate $\mu$ of $C \cup \{v\}$ and adds the $k$-club to the priority queue with its corresponding mortality rate. Next, it makes a recursive call to the BK algorithm in $G^k$. 
+% Once all possible neighbors of the vertex $v$ in $L$ have been explored, the algorithm backtracks by removing the current pivot $v$ from $L$ and adding $v$ to $S$. Algorithm terminates if the extended set $C$ has reached size $b$ or both $L$ and $S$ are empty.
+% This procedure continues until all vertices in the power graph $G^k$ have been explored. At this point the max-heap $Q$ contains all feasible $k$-clubs encountered, with their associated mortality rate as heap priority.
+
+% \begin{algorithm}[!htbp]
+% \tiny
+%     \KwIn{$\langle P, X, A, G=(D,E), \ell \rangle, k, b, S$}
+%     \KwOut{Top $S$ highest lethal $k$-clubs}
+%     $T \gets \{v \in D : A_{v}\cap X = \emptyset \}$\\
+%     $G \gets G[D\setminus T]$\\
+%     $GP \gets G^k$  \CommentSty{\hfill \small The $k^{th}$ power of graph}\\
+%     $Q \gets \emptyset$ 
+%     \CommentSty{\hfill \small Global max-heap data structure of size $S$ with mortality rate as priority}\\
+%     $C \gets \emptyset$ and $den \gets P$\\
+%     $L \gets  V(GP)$ and $S \gets \emptyset$\\
+%     $\mu \gets 0$ and $newden \gets 0$ \CommentSty{\hfill \small Global variables for the mortality rate and denominator}\\
+%     \SetKwFunction{FBronKerbosch}{Bron--Kerbosch}
+%     \SetKwFunction{Fiskclub}{is-k-club}
+%     \SetKwFunction{Fbfs}{BFS-LC}
+%     \BlankLine
+    
+%     \FBronKerbosch{$GP,G,C,L,S,den$}\\
+%     \KwRet{Top-$S$} $k$-\text{clubs from} $Q$\\
+%     \BlankLine
+    
+%     \SetKwProg{Fn}{Function}{}{}
+
+%     \Fn{\Fiskclub{$G,C,k$}}{
+%         \Fn{\Fbfs{$start\_nodes, C$}}{
+%             $visited \gets \emptyset$\\
+%             $queue \gets$ Queue with elements $(node, 0) \text{ for } node \in start\_nodes$\\
+%             $visited \gets visited \cup start\_nodes$\\
+%             $longest\_path \gets 0$\\
+%             \While{$ queue \neq \emptyset$}{
+%                 $(u, distance) \gets \text{popleft from } queue$\\
+%                 $longest\_path \gets \max(longest\_path, distance)$\\
+%                 \If{$distance > k$}{
+%                     \textbf{continue} \CommentSty{\hfill \small Path length exceeds $k$}
+%                 }
+%                 \For{$neighbor \in N_G(u)$}{
+%                     \If{$\text{neighbor} \in C$ \textbf{and} $\text{neighbor} \notin \text{visited}$}{
+%                         $queue \gets (neighbor, distance + 1)$\\
+%                         $visited \gets visited \cup neighbor$\\
+%                     }
+%                 }
+%             }
+%         \Return $longest\_path, |visited| = |C|$ \CommentSty{\hfill \small Length and Connectivity within the k-club}
+%         }
+
+%     $(longest\_path, connected) \gets \Fbfs{C, C}$ \CommentSty{\hfill \small BFS from all nodes in $C$}\\
+%     \If{$\text{longest\_path} > k$ \textbf{or not} $\text{connected}$}{
+%         \Return \text{False}
+%     }
+%     \Return \text{True}
+%     }
+
+% \BlankLine
+
+%     \Fn{\FBronKerbosch{$GP,G,C,L,S,den$}}{
+%         \If{$|C|=b$ \text{or} $L\cup S = \emptyset$}{
+
+%         \KwRet}
+%         \For{$v \in L$}{
+%             $newden \gets den \cap A_v$\\
+%             \If{$|newden| \ge \ell$}{
+%                 $C \gets C \cup \{v\}$\\                \If{\Fiskclub{G,C,k}}{
+%                 $\mu \gets \frac{|X \cap newden|}{|newden|}$\\
+%                 Insert $C$ in $Q$ with priority $\mu$\\
+%                 \FBronKerbosch{$GP,G,C, L\cap N_{GP}(v), S\cap N_{GP}(v), newden$}}
+%                 $L \gets L \setminus \{v\}$\\
+%                 $S \gets S \cup \{v\}$\\
+%             }
+%         }
+%         \KwRet $Q$
+%     }
+% \caption{Enumerating Top-$S$ highest lethal $k$-clubs}
+% \label{alg.MRkclub}
+% \end{algorithm}
+% Tables~\eqref{tab:allsamplesMRclubwithfixedl} and~\eqref{tab:fulldataMRclub100} report the top $k$-club with the highest mortality rate for each setting $k=2, 3$ and $b=3,4,5$ obtained from algorithm~\eqref{alg.MRkclub} for all samples 1K, $\dots$, 500K, and the full dataset.
+% \begin{table}[!ht]
+% \small
+% \centering
+% \resizebox{\textwidth}{!}
+%     {\begin{tabular}{ccclrrrr}
+%      \toprule
+%          Sample  & $k$ & $b$ & $k$-Club & \#Exp & $\mu$ & Time & \#RC \\[0.5ex]
+%           \midrule
+%          \multirow{5}{*}{1K}& \multirow{3}{*}{2} & \multirow{1}{*}{3} & Mental health, Nerv. sys. disord., Liver disease & 5 & 0.50 & $<1$ & \numprint{8861} \\
+%     & & 4 & Mental health, Nerv. sys. disord., Liver disease & 5 & 0.50 & 2 & \numprint{23869} \\
+%     & & 5 & Mental health, Nerv. sys. disord., Liver disease & 5 & 0.50 & 4 & \numprint{40156} \\
+%     \cline{2-8}
+%     & \multirow{2}{*}{3} & 4 & Mental health, Nerv. sys. disord., Liver disease & 5 & 0.50 & 2 & \numprint{23869} \\
+%     & & 5 & Mental health, Nerv. sys. disord., Liver disease & 5 & 0.50 & 3 & \numprint{40156} \\
+%     \midrule
+
+%      \multirow{5}{*}{5K} & \multirow{3}{*}{2} & \multirow{1}{*}{3} & Second malignancies, Mental health, Nerv. sys. disord. & 9 & 0.82 & 5 & \numprint{64536} \\
+%     & & 4 & Second malignancies, Mental health, Nerv. sys. disord. & 9 & 0.82 & 35 & \numprint{359743} \\
+%     & & 5 & Second malignancies, Mental health, Nerv. sys. disord. & 9 & 0.82 & 163 & \numprint{1237575} \\
+%     \cline{2-8}
+%     & \multirow{2}{*}{3} & 4 & Second malignancies, Mental health, Nerv. sys. disord. & 9 & 0.82 & 33 & \numprint{359074} \\
+%     & & 5 & Second malignancies, Mental health, Nerv. sys. disord. & 9 & 0.82 & 155 & \numprint{1236778} \\
+%     \midrule
+
+%      \multirow{5}{*}{50K} & \multirow{3}{*}{2} & \multirow{1}{*}{3} & Epilepsy, Mental health, Cardiac arrest & 15 & 1.00 & 50 & \numprint{565390} \\
+%     & & 4 & Shock, Cardiac arrest, Metabolic disorder., Circulatory disease & 16 & 1.00 & \numprint{1230} & \numprint{10517383} \\
+%     & & 5 & Shock, Anemia, Cardiac arrest, Liver disease & 16 & 1.00 & \numprint{17637} & \numprint{114690228} \\
+%     \cline{2-8}
+%     & \multirow{2}{*}{3} & 4 & Shock, Cardiac arrest, Metabolic disorder., Circulatory disease & 16 & 1.00 & 666 & \numprint{6265138} \\
+%     & & 5 & Shock, Complic. of surgical proced., Cardiac arrest & 13 & 1.00 & \numprint{10697} & \numprint{75993181} \\
+%     \midrule
+
+%      \multirow{5}{*}{500K} & \multirow{3}{*}{2} & \multirow{1}{*}{3} & Cardiac arrest, Foot deformities, Circulatory disease & 13 & 1.00 & 181 & \numprint{775508} \\
+%     & & 4 & Malign. neopl., Second malign., Cardiac arrest, Unclassified & 19 & 1.00 & \numprint{4754} & \numprint{28667859} \\
+%     & & 5 & E Code. Fall, Complic. of surgical proced., Cardiac arrest, Injuries external cause, Thyroid disorder. & 15 & 1.00 & \numprint{80026} & \numprint{510792560} \\
+%     \cline{2-8}
+%     & \multirow{2}{*}{3} & 4 & Nutrition. deficiencies, Coma, Cardiac arrest, Ill-def. heart disease & 14 & 1.00 & \numprint{1216} & \numprint{7709912} \\
+%     & & 5 & Second malign., Respiratory fail., Urinary tract infect., Renal fail., Skin disorder.& 18 & 1.00 & \numprint{20237} & \numprint{132304778} \\
+%     \bottomrule
+    
+%     \end{tabular}}
+%     \caption{Results of Running Algorithm~\eqref{alg.MRkclub} for Finding $k$-clubs of Size $b$ with Setting $\ell = 10$}
+%     \label{tab:allsamplesMRclubwithfixedl}
+% \end{table}
+
+% \begin{table}[!ht]
+% \centering
+% \small
+% \resizebox{\textwidth}{!}
+%     {\begin{tabular}{cclrrrr}
+%      \toprule
+%          $k$ & $b$ & $k$-Club & \#Exp & $\mu$ & Time & \#RC \\[0.5ex]
+%           \midrule
+%          \multirow{15}{*}{2} & \multirow{5}{*}{3} & Malign. neopl., Septicemia, Cardiac arrest & \numprint{246} & 0.86 & \multirow{5}{*}{\numprint{4090}} & \multirow{5}{*}{\numprint{788046}} \\
+%           & & Shock, Second. malign., Cardiac arrest &  \numprint{532} & 0.85 &  &  \\
+%           & & Malign. neopl., Cardiac arrest, Resp. fail. & \numprint{369} & 0.85 &  & \\
+%           & & Malign. neopl., Dis. white blood cells, Cardiac arrest & \numprint{213} & 0.85 &  &  \\
+%           & & Septicemia, Second. malign., Cardiac arrest  & \numprint{658} & 0.85 &  &  \\
+%      \cline{2-7}
+%      & \multirow{5}{*}{4} & Malign. neopl., E Codes: effects medical drugs, Dis. white blood cells, Cardiac arrest  & \numprint{111} & 0.88 & \multirow{5}{*}{\numprint{45958}} & \multirow{5}{*}{\numprint{35584987}}  \\
+%           & & Malign. neopl., Second. malign., Cardiac arrest, Pneumonia & \numprint{182} & 0.88 &  &  \\
+%           & & Shock, Second. malign., Coag. and hemorr. disord., Cardiac arrest & \numprint{254} & 0.88 &  &  \\
+%           & & Malign. neopl., Septicemia , Second. malign., Cardiac arrest & \numprint{181} & 0.88 &  &  \\
+%           & & Malign. neopl., Second. malign., Cardiac arrest, Unclassified & \numprint{398} & 0.88 &  &  \\
+%     \cline{2-7}
+%      & \multirow{5}{*}{5} & - & - & - & \multirow{5}{*}{TO} & \multirow{5}{*}{-}  \\
+%           & & -& - & - &  &  \\
+%           & & -& - & - &  &  \\
+%           & & -& - & - &  &  \\
+%           & & -& -& - &  &  \\
+%     \midrule
+%      \multirow{10}{*}{3} & \multirow{5}{*}{4} & Shock, Coma, Cardiac arrest, Renal fail. & \numprint{1994} & 0.77 & \multirow{5}{*}{\numprint{17875}} & \multirow{5}{*}{\numprint{7721543}}  \\
+%           & & Shock, Coma, Cardiac arrest, Aftercare & \numprint{1849} & 0.77  &  &  \\
+%           & & Epilepsy, Shock, Coma, Cardiac arrest  & \numprint{798} & 0.76 &  &  \\
+%           & & Shock, Diab. mellitus w. complications, Coma, Cardiac arrest & \numprint{863} & 0.76 &  &  \\
+%           & & Fluid disord., Shock, Coma, Cardiac arrest & \numprint{2469} & 0.76 &  &  \\
+%     \cline{2-7}
+%      & \multirow{5}{*}{5} & Shock, Coma, Cardiac arrest, Renal fail., Aftercare & \numprint{1368} & 0.77 & \multirow{5}{*}{\numprint{111521}} & \multirow{5}{*}{\numprint{135431817}}  \\
+%           & & Shock, Coma, Mental health, Cardiac arrest, Renal fail.& \numprint{967} & 0.77 &  &  \\
+%           & & Shock, Diab. mellitus w. complications, Coma, Mental health, Cardiac arrest & \numprint{463} & 0.77 &  &  \\
+%           & & Shock, Diab. mellitus w. complications, Coma, Cardiac arrest, Aftercare & \numprint{735} & 0.77 &  &  \\
+%           & & Fluid disord., Shock, Coma, Cardiac arrest, Renal fail. & \numprint{1842} & 0.77 &  &  \\
+%     \bottomrule
+%     \end{tabular}}
+%     \caption{Top-5 Lethal $k$-clubs of Size $b$ in 10.6 Million Dataset, $\ell = \numprint{100}$}
+%     \label{tab:fulldataMRclub100}
+% \end{table}
+
+As a part of our progress to complete RO-\ref{it.RO2}, we implemented DBC algorithm for model~\eqref{form.FPRO2lin}. For $\Delta = 0.05$, the threshold for $\ell$~\eqref{eq.ell} in different samples and the complete data set is reported in Table~\eqref{tab.rhsEll}.
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{l c|c}
+    Sample & R.H.S. & Rounding\\
+    \toprule
+         1K & 14.39 & 15 \\
+         \midrule
+         5K & 63.94 & 64 \\
+         \midrule
+         50K & 604.05 & 605\\
+         \midrule
+         500K & 5863.63 & 5864 \\
+         \midrule
+         10.6M & 124491.09 & \numprint{124492} \\
+         \bottomrule
+    \end{tabular}
+    \caption{Finding the right-hand-side value of Equation~\eqref{eq.ell}}
+    \label{tab.rhsEll}
+\end{table}
+Our initial results are presented in table~\eqref{tab:mipresultswithout clique10}. Notice that in table~\eqref{tab:mipresultswithout clique10}, (**) does not form a clique. Vertices corresponding to cardiac arrest and poisoning by drugs are not connected in the graph.
+ \begin{table}[!ht]
+ \small
+\scriptsize \centering
+\resizebox{\textwidth}{!}{\begin{tabular}{ c  c l  r  r  r  r  r } 
+ \toprule
+ Sample & $b$ &  Clique  &\#Exp & $\mu$ &  Gap (\%) & Time (s) & \#BCN\\ 
+\midrule
+ \multirow{4}{*}{1K} & 1 & Respiratory fail. &3 & 0.20 & 0 & 3 & 95\\
+ & 2 & E Code. Unspecified, Diab. mell. without complic. & 4 & 0.40 & 0 & 12 & \numprint{5770}\\
+& 3 & Mental health, Nerv. sys. disord., Liver disease  & 5 & 0.50 & 0 & 18 & \numprint{8907}\\
+ &4& Mental health, Nerv. sys. disord., Liver disease &  5 & 0.50 & 0 & 17 & \numprint{14619}\\
+
+\midrule
+
+\multirow{4}{*}{5K}   & 1 & Cardiac arrest  & 16 & 0.72 & 0 & 63 & \numprint{6493}\\
+ & 2 & Cardiac arrest, Fluid disord. & 8 & 0.80 &  0 & \numprint{5971} & \numprint{1516930}\\
+& 3 & Second. Malign., Mental health, Nerv. sys. disord. & 9 & 0.81 & 22 & TO & \numprint{2872944}\\
+& 4 & Second. Malign., Mental health, Nerv. sys. disord. & 9 & 0.81 & 0 & \numprint{6667} & \numprint{2161505}\\
+
+\midrule
+
+\multirow{4}{*}{50K}  & 1 & Cardiac arrest  & 165 & 0.76 & 0 & \numprint{6714} & \numprint{580930}\\
+ & 2 & ** Cardiac arrest, Poisoning by drugs & 10 & 1.00 & 0 & \numprint{1910} & \numprint{860618}\\
+
+& 3 & Congest heart fail., Ear and sense organ disord., Acute post. anemia & 5 & 0.50 & 100 & TO & \numprint{872507}\\
+& 4 & Leukemias, Coag. and hemorr. disord., Dis. of white blood cells & 10 & 1.00 & 83 & TO & \numprint{1236265}\\
+
+\midrule
+
+\multirow{4}{*}{500K}  & 1 & Out of Memory   & - & - & - & TO & 1\\
+ & 2 & Gangrene & 133 & 0.19 & 426 & TO & \numprint{1}\\
+
+& 3 & Out of Memory   & - & - & - & TO & 0\\
+& 4 & Rheumatoid, Nausea, Infective arthritis, E Code. medical drug & 2 & 0.14 & 600 & TO & \numprint{1}\\
+\bottomrule
+\end{tabular}}
+\caption{Results of the DBC  Algorithm without Considering Clique Constraints with $\ell =10$.}
+\label{tab:mipresultswithout clique10}
+\end{table}

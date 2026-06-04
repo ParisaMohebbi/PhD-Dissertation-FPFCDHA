@@ -1,0 +1,145 @@
+\begingroup
+\clearpage% Manually insert \clearpage
+\let\clearpage\relax% Remove \clearpage functionality
+\vspace*{-16pt}% Insert needed vertical retraction
+\chapter[THEORETICAL CHALLENGES]{THEORETICAL CHALLENGES}\label{sec.theory}
+\endgroup
+
+We begin by establishing a structural property of the mortality rate function: it is neither additive nor monotonic. In particular, we show that introducing an additional disease into an existing clique may increase, decrease, or leave the mortality rate unchanged, depending on the distribution of patients across the relevant incidence sets. This non-monotonic behavior already suggests that simple greedy or local-search heuristics may fail to find high-mortality cliques.
+
+We next turn to the computational complexity of the core optimization problem, finding an $\ell$-frequent clique with maximum (or sufficiently high) mortality rate. In the remainder of this chapter, we prove that several decision versions of this problem are NP-complete.
+
+\section{Monotonicity}
+
+We observe that the mortality rate function $\mu: 2^V \to \mathbb{R}^+$ is neither additive nor monotonic. In particular, for any $v \in V \setminus C$,
+\begin{equation}
+    \label{eq.addv}
+    \mu(C \cup \{v\}) = \frac{\bigl|\widetilde{P} \cap \bigcap_{u \in C} A_u \cap A_v\bigr|}{\bigl|\bigcap_{u \in C} A_u \cap A_v\bigr|},
+\end{equation}
+showing that $\mu(C \cup \{v\})$ cannot in general be written as $\mu(C) + g(v)$ for some function $g$ that depends only on $v$. Adding a new disease $v$ reduces both the numerator and the denominator of $\mu(C)$ by amounts that generally differ, so $\mu$ is not additive.
+
+Although the absolute decrease in the numerator is at most the decrease in the denominator, the function $\mu$ is still not monotonic, as shown by the following theorem.
+
+\begin{theorem}[Non-monotonicity of the mortality rate function]
+    \label{thm.mu-nonmonotonic}
+    The mortality rate function $\mu$ is neither additive nor monotonic. More precisely:
+    \begin{enumerate}[(i)]
+        \item There exist sets $C \subseteq V$ and $v \notin C$ such that $\mu(C \cup \{v\}) > \mu(C)$.
+        \item There exist sets $C \subseteq V$ and $v \notin C$ such that $\mu(C \cup \{v\}) < \mu(C)$.
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof}
+    Clearly, $\mu(C \cup \{v\}) = \mu(C)$ whenever $A_v \supseteq \bigcap_{u \in C} A_u$. Now suppose $\bigcap_{u \in C} A_u \setminus A_v \neq \emptyset$. Let
+    \[
+        \kappa_a = \bigl|\bigl(\bigcap_{u \in C} A_u \setminus A_v\bigr) \cap (P \setminus \widetilde{P})\bigr|, \qquad
+        \kappa_e = \bigl|\bigl(\bigcap_{u \in C} A_u \setminus A_v\bigr) \cap \widetilde{P}\bigr|.
+    \]
+    Then
+    \begin{equation}
+        \mu(C \cup \{v\}) = \frac{
+            \bigl|\widetilde{P} \cap \bigcap_{u \in C} A_u\bigr| - \kappa_e
+        }{
+            \bigl|\bigcap_{u \in C} A_u\bigr| - (\kappa_a + \kappa_e)
+        }.
+        \label{eq.mu-rewritten}
+    \end{equation}
+If $\kappa_a = 1$ and $\kappa_e = 0$, the denominator decreases while the numerator is unchanged, so $\mu(C \cup \{v\}) > \mu(C)$.
+If $\kappa_a = 0$ and $\kappa_e = 1$ (with $\mathrm{den}(C) - 1 \ge 1$ and $\mu(C) > 0$), then $\mu(C \cup \{v\}) = \frac{p-1}{q-1} \le \frac{p}{q} = \mu(C)$, where $p = \left| \mathrm{num}(C) \right|$ and $q = \left| \mathrm{den}(C) \right|$. The inequality is strict whenever $\mu(C) < 1$.
+Thus, both increases and decreases are possible, proving that $\mu$ is not monotonic.
+\end{proof}
+
+\section{Complexity}
+We establish the NP-completeness of three decision problems related to our optimization problem of interest, which is to find a nonempty $\ell$-frequent clique in the comorbidity graph $G$ with {maximum mortality rate}. In the first two results we use reductions from the classical \textsc{3-Satisfiability} problem, stated below for reference.
+
+\probd{High Mortality Rate Clique (Hmrc)}{A comorbidity graph $G=(V,E)$, patient set $P$, deceased patient subset $\widetilde P\subseteq P$, incidence sets $A_u\subseteq P$ for each $u\in V$, positive integer $\ell$, and a rational number $\bar \mu\in(0,1]$}{
+Does $G$ contain an $\ell$-frequent clique $C$ with $\mu(C) \ge \bar \mu$}
+
+\probd{3-Satisfiability (3Sat)}{A Boolean formula in conjunctive normal form $\mathcal{F} = \bigwedge\limits_{i=1}^m ({f}_{i1} \vee f_{i2} \vee f_{i3})$, and each literal $f_{ij} \in \{x_k, \neg x_k\}$ for some $k = 1,2,\ldots,n$}{Is there an assignment for Boolean variables $(x_1,x_2,\ldots,x_n)$ that satisfies $\mathcal{F}$}
+
+\begin{theorem}\label{thm.HMRCP_NPC}
+    \textsc{Hmrc} is NP-complete for every positive integer $\ell$.
+\end{theorem}
+\begin{proof}
+    We construct an instance of \textsc{Hmrc} from a given 3SAT instance as follows. Let $V \coloneqq \bigcup_{i=1}^m\{v_{i1}, v_{i2}, v_{i3}\}$, where each literal in every clause is associated with a distinct vertex. For every pair of vertices $\{u,v\} \in \binom{V}{2}$, we add an edge to $E$ if and only if $u$ and $v$ correspond to literals from distinct clauses that are not negations of each other.
+
+    The set of deceased patients consists of $\ell$ patients $\widetilde{P} \coloneqq \{q_1,\ldots,q_\ell\}$. The set of live patients consists of one patient per clause, so $P\setminus \widetilde{P} \coloneqq \{p_1, \ldots, p_m\}$. For each live patient $p_i$, the set of diseases is defined by $D_{p_i} \coloneqq V \setminus \{v_{i1}, v_{i2}, v_{i3}\}$ (i.e., all diseases except those associated with clause $i$). For each deceased patient $q_i$, we set $D_{q_i} \coloneqq V$. Consequently, for each disease $v_{ij}$, the incidence set is $A_{v_{ij}} = P \setminus \{p_i\}$.
+
+    We complete the reduction by setting $\bar \mu = 1$. This construction can be carried out in polynomial time. For any nonempty $C \subseteq V$, define that $C$ does not cover clause $i$ if $C \cap \{v_{i1}, v_{i2}, v_{i3}\} = \emptyset$. Then,
+    \begin{align*}
+        \den(C) &= \bigcap\limits_{v_{ij}\in C}P\setminus\{p_i\} = \widetilde{P} \cup \{p_i \mid \text{clause } i \text{ is not covered by } C\}, \\
+        \num(C) &= \widetilde{P} \cap \den(C) = \widetilde{P}, \text{ and}\\
+        \mu(C) &= \frac{\ell}{\ell+k},
+    \end{align*}
+    where $k$ denotes the number of clauses not covered by $C$.
+
+    We now prove that $\mathcal{F}$ is satisfiable if and only if the constructed \textsc{Hmrc} instance is a yes-instance.
+
+    ($\Rightarrow$) Let $x$ be a satisfying assignment for $\mathcal{F}$. Construct $C$ by selecting, for each clause $i$, one vertex $v_{ij}$ corresponding to a true literal $f_{ij}$ in that clause (choosing the one with minimum index $j$ if multiple exist). Since $x$ satisfies $\mathcal{F}$, each clause has at least one true literal, so $|C| = m$. Any two vertices in $C$ belong to distinct clauses and correspond to true literals; hence they are not negations of each other and are adjacent in $G$. Moreover, every clause is covered, so $k=0$ and $|\den(C)| = \ell$. Thus $C$ is an $\ell$-frequent clique with $\mu(C) = 1 = \bar \mu$, showing that the \textsc{Hmrc} instance is a yes-instance.
+
+    ($\Leftarrow$) Suppose $C \subseteq V$ is an $\ell$-frequent clique satisfying $\mu(C) \ge \bar \mu$. Then $\ell/(\ell+k) \ge 1$ forces $k=0$. Hence every clause is covered. The literals corresponding to the vertices in $C$ can be set to true without conflict, yielding a satisfying assignment for $\mathcal{F}$ (any variable not appearing in $C$ may be assigned arbitrarily). It is straightforward to verify that \textsc{Hmrc} belongs to NP; therefore it is NP-complete.
+\end{proof}
+
+\begin{remark}
+    The reduction presented in Theorem~\ref{thm.HMRCP_NPC} establishes that \textsc{Hmrc} is NP-complete whether $\ell$ is given as part of the input or fixed as a constant. In particular, \textsc{Hmrc} remains NP-complete even when $\ell=1$. Furthermore, the same reduction implies that \textsc{Hmrc} is NP-complete when seeking a clique of size at most $b$, exactly $b$, or at least $b$ (by setting the parameter $b=m$, the number of clauses).
+\end{remark}
+
+The following result shows that \textsc{Hmrc} remains NP-complete even when the threshold $\bar\mu$ is fixed to any rational constant in $(0,1)$. Note that when $\bar\mu$ is a fixed constant (e.g., we only care about mortality rates of at least 0.9), the previous reduction with $\bar\mu=1$ no longer applies directly.
+
+\begin{theorem}\label{thm.HMRCP_NPC_fixmu}
+    \textsc{Hmrc} is NP-complete for every rational $\bar \mu \in (0,1)$.
+\end{theorem}
+\begin{proof}
+    The comorbidity graph $G$ is constructed exactly as in the proof of Theorem~\ref{thm.HMRCP_NPC}: one vertex per literal in each clause, with an edge between vertices from distinct clauses whose literals are not negations of each other.
+
+    The live patient set now includes the original $m$ clause patients $\{p_1,\ldots,p_m\}$ together with an additional group of $t$ patients $\{r_1,\ldots,r_t\}$, where $t \coloneqq \left\lfloor\frac{m(1-\bar\mu)}{\bar\mu}\right\rfloor$. The deceased patient set is $\widetilde{P} \coloneqq \{q_1,\ldots,q_m\}$. The incidence sets are defined by
+    \begin{align*}
+        D_{p_i} &\coloneqq V \setminus \{v_{i1}, v_{i2}, v_{i3}\}, &\forall i=1,\ldots,m,\\
+        D_{r_i} &\coloneqq V, &\forall i=1,\ldots,t,\\
+        D_{q_i} &\coloneqq V, &\forall i=1,\ldots,m.
+    \end{align*}
+    As before, $A_{v_{ij}} = P \setminus \{p_i\}$ for each $v_{ij} \in V$. We set $\ell = m + t$ to complete the polynomial-time reduction.
+
+    For any nonempty $C \subseteq V$,
+    \begin{align*}
+        \den(C) &= \widetilde{P} \cup \{r_1,\ldots,r_t\} \cup \{p_i \mid \text{clause } i \text{ is not covered by } C\}, \\
+        \num(C) &= \widetilde{P}, \text{ and}\\
+        \mu(C) &= \frac{m}{m+t+k},
+    \end{align*}
+    where $k$ is the number of uncovered clauses.
+
+    ($\Rightarrow$) Given a satisfying assignment, construct $C$ by selecting exactly one true literal per clause as before. Then $C$ is a clique of size $m$, every clause is covered ($k=0$), and $|\den(C)| = m+t = \ell$. Thus
+    \[
+        \mu(C) = \frac{m}{m+t} \ge \frac{m}{m + m(1-\bar\mu)/\bar\mu} = \bar\mu,
+    \]
+    so the instance is a yes-instance.
+
+    ($\Leftarrow$) Suppose $C$ is an $\ell$-frequent clique with $\mu(C) \ge \bar\mu$. Then
+    \[
+        \frac{m}{m+t+k} \ge \bar\mu \iff k \le \frac{m(1-\bar\mu)}{\bar\mu} - \left\lfloor \frac{m(1-\bar\mu)}{\bar\mu} \right\rfloor < 1,
+    \]
+    which forces $k=0$. All clauses are therefore covered, and we can extract a satisfying assignment for $\mathcal{F}$ as before. Since \textsc{Hmrc} is clearly in NP, the problem is NP-complete.
+\end{proof}
+
+To further investigate the complexity, we consider the variant that asks whether there exists any subset of $b$ diseases that is $\ell$-frequent, without requiring the subset to form a clique or to achieve a high mortality rate. We first recall the decision version of the balanced biclique problem, which is known to be NP-complete.
+
+\probd{$\ell$-Frequent Disease Subset (Fds)}{A subset of diseases $V$, patient set $P$, incidence sets $A_u\subseteq P$ for each $u\in V$, and positive integers $\ell$ and $b$}{
+Is there a $C \subseteq V$ such that $|C| \ge b$ and $|\den(C)| \ge \ell$}
+
+\probd{Balanced Biclique in Bipartite Graph (B3G)}{A bipartite graph $G=(L\cup R, E)$ with partite sets $L$ and $R$, and a positive integer $t$}{
+Does $G$ contain a complete bipartite subgraph with equal partitions of size $t$, i.e., does $G$ contain a subgraph isomorphic to $K_{t,t}$}
+
+\begin{theorem}\label{thm.HFLS}
+    \textsc{Fds} is NP-complete.
+\end{theorem}
+\begin{proof}
+    We reduce from \textsc{B3G}. Construct the \textsc{Fds} instance by setting $V \coloneqq L$, $P \coloneqq R$, and $\ell = b = t$. For each $u \in V = L$, define the incidence set $A_u \coloneqq N(u)$, where $N(u)$ denotes the neighborhood of $u$ in the bipartite graph. Equivalently, each patient $i \in P = R$ is afflicted by the diseases in $N(i)$.
+
+    For any $C \subseteq V$, we have $\den(C) = \bigcap_{u \in C} N(u)$. If $C \subseteq L$ and $B \subseteq R$ induce a balanced biclique $K_{t,t}$ in $G$, then $|C| = b = t$, $B \subseteq \den(C)$, and $|\den(C)| \ge t = \ell$. Conversely, if there exists $C \subseteq V$ with $|C| \ge b$ and $|\den(C)| \ge \ell$, then restricting to $t$ vertices on each side yields a balanced biclique in the original \textsc{B3G} instance. Thus the reduction is correct, establishing NP-completeness of \textsc{Fds}.
+\end{proof}
+
+The preceding results establish that the maximum mortality rate clique problem is 
+computationally intractable in general, and that its non-monotonic structure rules out 
+simple greedy or local-search strategies. Yet in practice, this problem must be solved on 
+comorbidity graphs derived from large real-world EHR datasets, where both solution quality 
+and computational efficiency matter. Chapter~\ref{sec.methods} presents the methodologies developed in this dissertation to address these challenges.
