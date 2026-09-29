@@ -1,16 +1,23 @@
-- This repository contains codes developed for the PhD dissertation "Fractional Programming Framework for Cluster Discovery in Healthcare Analytics" published at Oklahoma State University by Parisa Vaghfi Mohebbi.
+# Fractional Programming Framework for Cluster Discovery in Healthcare Analytics
 
-- To Cite:
-@phdthesis{
-author={Vaghfi Mohebbi,Parisa},
-year={2026},
-title={Fractional Programming Framework for Cluster Discovery in Healthcare Analytics},
-journal={ProQuest Dissertations and Theses},
-pages={125},
-note={Copyright - Database copyright ProQuest LLC; ProQuest does not claim copyright in the individual underlying works; Last updated - 2026-09-28},
-abstract={This dissertation studies the problem of identifying disease clusters associated with the highest mortality rates among patients in electronic health record databases. We introduce the maximum mortality rate clique problem, a fractional combinatorial optimization problem defined on a comorbidity graph whose vertices are disease categories and whose edges reflect statistically significant pairwise co-occurrence. The problem seeks a clique, supported by a sufficiently large shared patient population, that maximizes the mortality rate of the patients simultaneously diagnosed with all diseases in the clique. We establish that the mortality rate function is neither additive nor monotonic, ruling out simple greedy strategies, and prove NP-completeness of the associated decision problem and several related variants. These results motivate the development of exact solution methods of increasing sophistication. We develop two exact combinatorial algorithms: a modified Bron-Kerbosch enumerative algorithm and a combinatorial branch-and-bound algorithm that incorporates an upper-bounding scheme to aggressively prune the search tree. We present two mixed-integer linear programming formulations based on auxiliary product-variable linearization and the Charnes-Cooper transformation. These formulations become intractable as the patient population grows. To overcome this, we introduce a logic-based Benders reformulation that eliminates all patient-indexed variables and embeds naturally in a decomposition branch-and-cut framework. A hybrid variant further integrates the combinatorial branch-and-bound algorithm to generate stronger valid inequalities, substantially improving solution times and optimality gaps over the pure logic-based Benders decomposition approach. We further extend the framework to incorporate side constraints, a size-restricted variant, and a marginal mortality rate variant. We evaluate all proposed methods using the real-world electronic health record dataset, MIMIC-IV, obtaining clinically meaningful results.},
-keywords={Clique; Comorbidity graph; Electronic health record analysis; Fractional programming; Logic-based Benders decomposition; Multimorbidity analysis; Industrial engineering; Operations research; Applied mathematics; Health care management; 0769:Health care management; 0364:Applied Mathematics; 0546:Industrial engineering; 0796:Operations research},
-isbn={9798191687377},
-language={English},
-url={https://login.ezproxy.library.ualberta.ca/login?url=https://www.proquest.com/dissertations-theses/fractional-programming-framework-cluster/docview/3389582841/se-2},
+This repository contains the code developed for the PhD dissertation:
+
+> **Fractional Programming Framework for Cluster Discovery in Healthcare Analytics**  
+> **Parisa Vaghfi Mohebbi**  
+> Oklahoma State University, 2026
+
+## Citation
+
+If you use the code or methods from this repository, please cite the dissertation:
+
+@phdthesis{VaghfiMohebbi2026,
+  author    = {Vaghfi Mohebbi, Parisa},
+  year      = {2026},
+  title     = {Fractional Programming Framework for Cluster Discovery in Healthcare Analytics},
+  school    = {Oklahoma State University},
+  journal   = {ProQuest Dissertations and Theses},
+  pages     = {125},
+  isbn      = {9798191687377},
+  language  = {English},
+  url       = {https://www.proquest.com/dissertations-theses/fractional-programming-framework-cluster/docview/3389582841/se-2}
 }
