@@ -19,5 +19,5 @@ If you use the code or methods from this repository, please cite the dissertatio
   pages     = {125},
   isbn      = {9798191687377},
   language  = {English},
-  url       = {https://www.proquest.com/dissertations-theses/fractional-programming-framework-cluster/docview/3389582841/se-2}
+  url       = {https://www.proquest.com/docview/3389582841}
 }
